@@ -123,9 +123,9 @@ Each trigger gets one notification, under its id as sequence ID:
    point, so the feeds have been read across it. The digest adds the feeds and the first items. The rest are on the
    page.
 
-The priority by class is REVOTT + MDQNM 4 (high), REVOTT 3 (default sound) and MDQNM 2 (silent, in the drawer).
-Every class is pushed; the priority only sets how loudly. Change the numbers in `settings.json`. 3 makes the MDQNM
-matches sound as well. The ntfy app's per-priority settings on the phone apply on top.
+The priority by class is REVOTT + MDQNM 4 (high, a pop-up) and REVOTT 3 and MDQNM 3 (default sound), so every match is in view (the author's choice, 2026-11-11).
+Every class is pushed; the priority only sets how loudly. The numbers are in `settings.json`. The ntfy app's
+per-priority settings on the phone apply on top.
 
 ## Persistence and recovery
 
@@ -168,7 +168,7 @@ REVOTT STAMPS checkout whose archive and stamp are used, and `engine`, the engin
 | `settle_minutes` | 120 | how long after the window closes the digest waits |
 | `final_hours` | 24 | when the final stamp is recorded (not pushed) |
 | `horizon_hours` | 70 | how far ahead alerts are scheduled (ntfy's limit is 72) |
-| `priority` | 4 / 3 / 2 | per class |
+| `priority` | 4 / 3 / 3 | per class: REVOTT + MDQNM, REVOTT, MDQNM |
 | `page`, `stamps_page` | | this site (the notification's tap), REVOTT STAMPS |
 
 ### Setting up the phone
