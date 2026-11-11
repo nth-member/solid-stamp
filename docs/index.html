@@ -276,6 +276,7 @@ async function loadDigests() {
     if (!recs.length) continue;
     html += `<h3>${esc(d)}</h3>` + listHtml(recs.map(r => r.trigger), t => { const r = recs.find(x => x.trigger.id === t.id); return r.feeds ? r.feeds.items.length : "—"; });
   }
+  if (!html) { $("#digests").innerHTML = "<p>No digest has been sent yet: each goes out once its match's window has closed and settled.</p>"; return; }
   if (days.length > 4) html += `<p class="note">Earlier days: ${days.slice(4).map(d => `<a href="log/${esc(d)}.json">${esc(d)}</a>`).join(" · ")}</p>`;
   $("#digests").innerHTML = html; wirePicks($("#digests"));
 }

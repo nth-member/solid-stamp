@@ -72,14 +72,23 @@ try {
     check("its matched functions are 'on' in the spectrum", on >= 1 && fn >= 1, `${on} on`);
     await shot(`${label}-trigger`);
     await js(`document.querySelector('[data-tab="digests"]').click()`);
-    const dg = await until(`const n = document.querySelectorAll("#digests tr.pick").length; return n || null`);
-    check("DIGESTS lists the digests as sent", dg > 0, `${dg} rows`);
-    await js(`[...document.querySelectorAll("#digests tr.pick")].find(r => r.lastElementChild.textContent !== "—").click()`);
-    const ver = await until(`const v = document.querySelector("#view .ok"); return v ? v.textContent : null`);
-    check("a sent digest: the spectrum read in the page is the one sent", !!ver, ver || "no verification line");
-    const items = await js(`return document.querySelectorAll("#view a[rel=noopener]").length`);
-    check("its feed items are listed with their links", items > 0, `${items} items`);
-    await shot(`${label}-digest`);
+    const dg = await until(`const t = document.querySelector("#digests").textContent; return /No digest/.test(t) ? -1 : document.querySelectorAll("#digests tr.pick").length || null`);
+    if (dg === -1) console.log("  --    DIGESTS: no digest sent yet; the digest checks wait for the first one");
+    else {
+      check("DIGESTS lists the digests as sent", dg > 0, `${dg} rows`);
+      await js(`[...document.querySelectorAll("#digests tr.pick")].find(r => r.lastElementChild.textContent !== "—").click()`);
+      const ver = await until(`const v = document.querySelector("#view .ok"); return v ? v.textContent : null`);
+      check("a sent digest: the spectrum read in the page is the one sent", !!ver, ver || "no verification line");
+      const items = await js(`return document.querySelectorAll("#view a[rel=noopener]").length`);
+      check("its feed items are listed with their links", items > 0, `${items} items`);
+      await shot(`${label}-digest`);
+    }
+    if (arg("--open")) {                                   // a notification's tap: the page opened on its trigger
+      await call("POST", S("/url"), { url: BASE + arg("--open") });
+      const t = await until(`const v = document.querySelector("#view"); return v && !v.hidden && document.querySelectorAll("#spt tr[data-s]").length ? document.querySelector("#view h2").textContent : null`);
+      check("a notification's link opens its trigger, with the full spectrum", !!t, t || "nothing shown");
+      await shot(`${label}-tap`);
+    }
     await js(`document.querySelector('[data-tab="lookup"]').click(); document.querySelector("#zIn").value = "20824"; document.querySelector("#zGo").click()`);
     const z = await until(`const h = document.querySelector("#lookupOut h3"); return h ? h.textContent : null`);
     check("LOOK UP a TNLDY: 20824 is a match, with 4 REVOTT pairs", /a match/.test(z) && (await js(`return document.querySelectorAll("#lookupOut table")[0].querySelectorAll("tr").length - 1`)) === 4, z);
