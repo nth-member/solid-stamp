@@ -1,0 +1,13 @@
+{
+ "note": "SOLID STAMP's settings. Stamps are driven by exact matches to SFO-BBs only; these settings shape the digest and its delivery, never which TNLDY stamps. eps: the variac, in X units at REVOTT's 100 days (0.00005 = ±7.2 min about Z). clock and domains: REVOTT STAMPS' own (reconciled clock; the six feeds chosen for stamping). settle_minutes: how long after the window closes the digest waits for late items. final_hours: when the final stamp is recorded (not pushed). horizon_hours: how far ahead alerts are scheduled on the ntfy server (its limit is 72). priority: ntfy priority per class (1 min, 2 low/silent, 3 default, 4 high, 5 max); every class is pushed. items_in_message: feed items shown in the notification (all are on the digest page). page: the SOLID STAMP site, once published; stamps_page: REVOTT STAMPS.",
+ "eps": "0.00005",
+ "clock": "reconciled",
+ "domains": ["balkans", "geopolitical-analysis", "middle-east", "russia-eurasia", "science-technology", "world"],
+ "settle_minutes": 120,
+ "final_hours": 24,
+ "horizon_hours": 70,
+ "priority": {"revott+mdqnm": 4, "revott": 3, "mdqnm": 2},
+ "items_in_message": 8,
+ "page": "",
+ "stamps_page": "https://nth-member.github.io/revott-stamps/"
+}

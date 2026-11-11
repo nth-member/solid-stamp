@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SOLID STAMP</title>
+<meta name="description" content="A notification whenever a TNLDY matches SFO-BBs exactly: REVOTT's 401 × 401 pairs and every MDQNM function on its 401 SFO-BBs; each digest reads the full spectrum of the MDQNM functions and stamps the feeds there.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='10' y='10' width='44' height='44' rx='8' fill='none' stroke='%232a78d6' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='7' fill='%232a78d6'/%3E%3C/svg%3E">
+<script src="https://3pp-noah.github.io/usage.js" defer></script>
+<style>
+:root{
+  color-scheme: light;
+  --plane:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+  --line:#e1e0d9; --axis:#c3c2b7; --accent:#2a78d6; --hit:#1f8a4c; --warn:#b26b00; --null:#b23b3b;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --plane:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+    --line:#2c2c2a; --axis:#383835; --accent:#3987e5; --hit:#4cc27e; --warn:#e3a33b; --null:#e06c6c;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --plane:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink-2:#c3c2b7; --muted:#898781;
+  --line:#2c2c2a; --axis:#383835; --accent:#3987e5; --hit:#4cc27e; --warn:#e3a33b; --null:#e06c6c;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0;background:var(--plane);color:var(--ink);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 48px}
+h1{margin:0 0 4px;font-size:24px;letter-spacing:.06em}
+h2{margin:0 0 10px;font-size:16px}
+h3{margin:14px 0 6px;font-size:14px;color:var(--ink-2)}
+.sub{color:var(--ink-2);margin:0 0 14px;max-width:780px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;margin:14px 0}
+.clockline{font-size:13px;color:var(--ink-2)}
+label{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+input,select,button{font:inherit;color:var(--ink);background:var(--plane);border:1px solid var(--axis);border-radius:8px;padding:7px 9px;max-width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.go{background:var(--ink);color:var(--plane);border-color:var(--ink);font-weight:600;padding:8px 18px;cursor:pointer}
+.note{font-size:13px;color:var(--muted);margin:6px 0 0}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:10px 0}
+.tile{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--plane)}
+.tile .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-size:19px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;max-height:70vh}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{position:sticky;top:0;background:var(--surface);font-weight:600;color:var(--ink-2);z-index:1}
+tr.pick{cursor:pointer}
+tr.pick:hover{background:var(--plane)}
+td.num,th.num{text-align:right;white-space:nowrap}
+a{color:var(--accent)}
+.cls{font-size:12px;border-radius:6px;padding:1px 6px;border:1px solid var(--line);white-space:nowrap}
+.cls.revott-mdqnm{color:var(--hit);border-color:var(--hit);font-weight:600}
+.cls.revott{color:var(--accent);border-color:var(--accent)}
+.cls.mdqnm{color:var(--ink-2)}
+.on{color:var(--hit);font-weight:600}
+.how{display:inline-block;width:1.6em;text-align:center;border-radius:5px;border:1px solid var(--line);font-size:11px}
+.reading{color:var(--ink-2)}
+.tabs{display:flex;gap:6px;margin:14px 0 -6px;flex-wrap:wrap}
+.tab{background:var(--plane);border:1px solid var(--axis);border-radius:8px 8px 0 0;padding:7px 16px;cursor:pointer;font-weight:600;letter-spacing:.06em;font-size:13px}
+.tab[aria-selected="true"]{background:var(--surface);border-color:var(--ink);color:var(--ink)}
+details summary{cursor:pointer;color:var(--ink-2)}
+.ok{color:var(--hit)} .bad{color:var(--null)}
+.foot{color:var(--muted);font-size:12px;margin-top:26px;line-height:1.6}
+.break{word-break:break-word}
+@media (max-width:560px){ h1{font-size:20px} .tile .v{font-size:16px} .tab{padding:6px 10px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SOLID STAMP</h1>
+  <p class="sub">A notification whenever a TNLDY matches SFO-BBs exactly, and only then. The match is either a pair
+    (Y, X) of REVOTT's 401 SFO-BBs, at 14160 + 100·(Y + X), or an MDQNM function of the engine on one of its 401
+    SFO-BBs, at Ztp + U·x. Each digest reads the full spectrum of the MDQNM functions at that TNLDY, and stamps the
+    feeds within its window.</p>
+  <div class="clockline mono" id="clock">…</div>
+
+  <div class="card" id="view" hidden></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="next" aria-selected="true">NEXT</button>
+    <button class="tab" role="tab" data-tab="digests" aria-selected="false">DIGESTS</button>
+    <button class="tab" role="tab" data-tab="lookup" aria-selected="false">LOOK UP</button>
+    <button class="tab" role="tab" data-tab="about" aria-selected="false">ABOUT</button>
+  </div>
+  <div class="card" data-pane="next"><h2>The next seven days</h2><div id="next">…</div></div>
+  <div class="card" data-pane="digests" hidden><h2>Digests as sent, newest first</h2><div id="digests">…</div></div>
+  <div class="card" data-pane="lookup" hidden>
+    <h2>Look up</h2>
+    <div class="row">
+      <div><label for="day">A day, in Nsukka</label><input id="day" type="date"></div>
+      <button class="go" id="dayGo">Triggers that day</button>
+      <div><label for="zIn">A TNLDY (decimal or n/d)</label><input id="zIn" class="mono" size="22" placeholder="20824"></div>
+      <button class="go" id="zGo">Its spectrum</button>
+    </div>
+    <p class="note">Computed here, exactly, from the 401 keys and the engine's maps: the same table the notifications are
+      sent from (tests/fidelity.mjs checks the two agree).</p>
+    <div id="lookupOut"></div>
+  </div>
+  <div class="card" data-pane="about" hidden><div id="about">…</div></div>
+
+  <p class="foot">SOLID STAMP · <a href="https://nth-member.github.io/revott-stamps/">REVOTT STAMPS</a> stamps the feeds ·
+    <a href="https://nth-member.github.io/alien-corridor/">Alien Corridor</a> runs the engine · <a href="https://3pp-noah.github.io/">3PP-NOAH</a>.
+    Times are Nsukka's (WAT) on the Yg clock.</p>
+</div>
+<script src="nsukka-yg-clock.js"></script>
+<script src="solid.js"></script>
+<script>
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CLASS = { "revott+mdqnm": "REVOTT + MDQNM", revott: "REVOTT", mdqnm: "MDQNM" };
+const HOW = { p: "page", f: "feed", d: "day", s: "seen" };
+const DAY = 86400000;
+const cache = {};
+const get = (u, fresh) => cache[u] && !fresh ? cache[u] : (cache[u] = fetch(u, { cache: fresh ? "no-cache" : "default" }).then(r => { if (!r.ok) throw new Error(u + " " + r.status); return r.json(); }));
+const nsk = ms => NsukkaYg.nsukka(ms).slice(0, 19);
+const dateOf = ms => NsukkaYg.dateNsukka(ms);
+let KEYS, MAPS, PREP, SETTINGS = null;
+
+async function base() {
+  if (!KEYS) {
+    const [k, f] = await Promise.all([get("data/keys.json"), get("data/functions.json")]);
+    KEYS = k; MAPS = f.maps; PREP = SOLID.prepare(KEYS, MAPS);
+  }
+}
+async function sha256(text) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
+}
+const tidOf = async z => "ss" + (await sha256(z)).slice(0, 14);
+const reading = j => KEYS[j][1];
+const cls = c => `<span class="cls ${c.replace("+", "-")}">${CLASS[c]}</span>`;
+
+/* ---- the clock line ---- */
+let UPCOMING = [];
+function tick() {
+  const now = Date.now(), z = NsukkaYg.zOf(now).z;
+  const nx = UPCOMING.find(t => t.instants[0] > now);
+  let s = `${nsk(now)} Nsukka · TNLDY ${z.toFixed(6)}`;
+  if (nx) {
+    const d = nx.instants[0] - now, h = Math.floor(d / 3600000), m = Math.floor(d % 3600000 / 60000), sec = Math.floor(d % 60000 / 1000);
+    s += ` · next match in ${h ? h + " h " : ""}${m} min ${sec} s (${CLASS[nx.class]}, TNLDY ${nx.z6})`;
+  }
+  $("#clock").textContent = s;
+}
+
+/* ---- what matched ---- */
+function matchedHtml(t) {
+  let h = "";
+  if (t.pairs.length) {
+    const s = SOLID.text(SOLID.add(SOLID.parse(t.pairs[0].y), SOLID.parse(t.pairs[0].x)));
+    h += `<h3>REVOTT · 14160 + 100·(Y + X) = ${esc(t.z)}, Y + X = ${esc(s)}</h3><div class="tbl"><table><tr><th class="num">Y</th><th>reading</th><th class="num">X</th><th>reading</th></tr>` +
+      t.pairs.map(p => `<tr><td class="num mono">${esc(p.y)}</td><td class="reading">${esc(reading(p.yi))}</td><td class="num mono">${esc(p.x)}</td><td class="reading">${esc(reading(p.xi))}</td></tr>`).join("") + "</table></div>";
+  }
+  if (t.functions.length) {
+    h += `<h3>MDQNM · the function's coordinate (Z − Ztp)/U is on SFO-BB x</h3><div class="tbl"><table><tr><th>function</th><th class="num">Ztp</th><th class="num">U (days)</th><th class="num">SFO-BB x</th><th>reading</th></tr>` +
+      t.functions.map(f => `<tr><td class="break">${esc(f.name)}</td><td class="num mono">${esc(f.ztp)}</td><td class="num mono">${esc(f.unit)}</td><td class="num mono on">${esc(f.x)}</td><td class="reading">${esc(reading(f.xi))}</td></tr>`).join("") + "</table></div>";
+  }
+  return h;
+}
+function matchedText(t) {
+  const p = t.pairs.map(p => `Y ${p.y} × X ${p.x}`), f = t.functions.map(f => `${f.name} on ${f.x}`);
+  return esc([...p, ...f].slice(0, 3).join(" · ") + (p.length + f.length > 3 ? ` · +${p.length + f.length - 3}` : ""));
+}
+
+/* ---- the full spectrum ---- */
+const num = s => s.includes("/") ? SOLID.fmt(SOLID.parse(s)).replace(/\.?0+$/, "") + "…" : s;
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+function spectrumHtml(sp) {
+  const k = j => KEYS[j][0];
+  const pos = (w, lo, hi) => w === "on" ? `<span class="on">on SFO-BB ${esc(k(lo))}</span> <span class="reading">${esc(reading(lo))}</span>`
+    : w === "between" ? `between ${esc(k(lo))} <span class="reading">${esc(reading(lo).slice(0, 48))}</span> and ${esc(k(hi))} <span class="reading">${esc(reading(hi).slice(0, 48))}</span>`
+    : w === "before" ? `before the first SFO-BB (${esc(k(0))})` : `after the last SFO-BB (${esc(k(KEYS.length - 1))})`;
+  return `<div class="row"><div><label for="spf">Filter</label><input id="spf" placeholder="name, or on"></div></div>
+    <div class="tbl" style="margin-top:8px"><table id="spt"><tr><th class="num">#</th><th>MDQNM function</th><th class="num">c = (Z − Ztp)/U</th><th>position among the 401 SFO-BBs</th></tr>` +
+    sp.map(([i, c, w, lo, hi]) => `<tr data-s="${esc((MAPS[i].names.join(" ") + " " + w).toLowerCase())}"><td class="num mono">${i}</td><td class="break">${esc(MAPS[i].name)}<div class="note mono">Ztp ${esc(num(MAPS[i].ztp))} · U ${esc(num(MAPS[i].unit))} d · ${esc(MAPS[i].at)}</div></td><td class="num mono">${esc(c)}</td><td>${pos(w, lo, hi)}</td></tr>`).join("") + "</table></div>";
+}
+function wireFilter() {
+  const f = $("#spf"); if (!f) return;
+  f.oninput = () => { const q = f.value.trim().toLowerCase(); document.querySelectorAll("#spt tr[data-s]").forEach(r => r.hidden = q && !r.dataset.s.includes(q)); };
+}
+
+/* ---- one trigger: as sent, or as foreknown ---- */
+async function showTrigger(id, date) {
+  await base();
+  const v = $("#view"); v.hidden = false; v.innerHTML = "…";
+  let rec = null, t = null;
+  try { rec = (await get(`log/${date}.json`))[id] || null; } catch (_) { rec = null; }
+  t = rec && rec.trigger;
+  if (!t) {                                   // not sent yet (or not recorded): find it on its day, exactly
+    const d0 = Date.parse(date + "T00:00:00+01:00"), den = BigInt(23 * DAY);
+    const rows = SOLID.between(SOLID.Q(BigInt(NsukkaYg.zOf(d0).num), den), SOLID.Q(BigInt(NsukkaYg.zOf(d0 + DAY).num), den), KEYS, MAPS, PREP);
+    for (const r of rows) if (await tidOf(r.z) === id) { t = toTrigger(r, id); break; }
+  }
+  if (!t) { v.innerHTML = `<p>No trigger ${esc(id)} on ${esc(date)}.</p>`; return; }
+  const sp = SOLID.spectrum(t.z, KEYS, MAPS, PREP), json = JSON.stringify(sp), h = await sha256(json);
+  const counts = { on: 0, between: 0, before: 0, after: 0 }; sp.forEach(r => counts[r[2]]++);
+  const sent = rec && rec.spectrum;
+  const verify = sent ? (sent.sha256 === h ? `<span class="ok">the spectrum read here is the one sent (SHA-256 ${h.slice(0, 12)}…)</span>`
+    : `<span class="bad">differs from the one sent: the engine's maps changed since (sent ${sent.sha256.slice(0, 12)}…, here ${h.slice(0, 12)}…)</span>`) : "";
+  const live = stampsLink(t);
+  let feeds = "";
+  if (rec && rec.feeds) {
+    const f = rec.feeds;
+    feeds = `<h3>Feeds within ±${(Number(f.eps) * 100 * 1440).toFixed(1)} min · ${f.domains.length} domains · ${f.items.length} items · ${esc(f.status)}</h3>
+      <p class="note">As stamped when the digest was sent (archive as of ${nsk(f.as_of)} Nsukka); ${f.covered} sources covered, ${f.partly.length} partly, ${f.null.length} NULL${f.null.length ? " (" + esc(f.null.join(", ")) + ")" : ""}.
+      ${rec.final ? `A day later the stamp held ${rec.final.items.length} items.` : ""}</p>` +
+      (f.items.length ? `<div class="tbl"><table><tr><th class="num">s from Z</th><th>Nsukka</th><th>clock</th><th>source</th><th>headline</th></tr>` +
+        (rec.final && rec.final.items.length > f.items.length ? rec.final.items : f.items).map(it => `<tr><td class="num mono">${esc(it[0])}</td><td class="mono">${nsk(it[1]).slice(11)}</td><td><span class="how" title="${HOW[it[2]]}">${esc(it[2])}</span></td><td>${esc(it[7] || it[3])}</td><td class="break"><a href="${esc(it[5])}" rel="noopener">${esc(it[4])}</a></td></tr>`).join("") + "</table></div>" : "<p>No item fell in the window. The stamp is driven by the match to SFO-BBs, not by the feeds.</p>");
+  } else {
+    feeds = `<h3>Feeds</h3><p>${t.instants[0] > Date.now() ? "Ahead: the window opens " + nsk(t.instants[0] - 432000) + " Nsukka." : "The digest has not been sent yet."}
+      ${live ? `<a href="${esc(live)}">Stamp it now in REVOTT STAMPS</a>.` : ""}</p>`;
+  }
+  const near = rec && rec.nearby && rec.nearby.length ? `<h3>Also within the window — each its own stamp</h3><div class="tbl"><table><tr><th>Nsukka</th><th class="num">TNLDY</th><th>class</th><th>match</th></tr>` +
+    rec.nearby.map(n => `<tr><td class="mono">${n.instants[0] ? nsk(n.instants[0]) : "—"}</td><td class="num mono">${esc(n.z6)}</td><td>${cls(n.class)}</td><td class="break">${matchedText(n)}</td></tr>`).join("") + "</table></div>" : "";
+  const sentLine = rec ? [rec.alert ? `alert scheduled for ${nsk(rec.alert.scheduled_for)}` : "", rec.digest ? `digest sent ${nsk(rec.digest.sent)}${rec.digest.late_minutes > 30 ? ` (${rec.digest.late_minutes} min late)` : ""}` : ""].filter(Boolean).join(" · ") : "";
+  v.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="margin:0">${cls(t.class)} ${t.instants[0] ? nsk(t.instants[0]) + " Nsukka" : "no instant"}</h2><a href="#" id="close">close</a></div>
+    <div class="tiles"><div class="tile"><div class="k">TNLDY</div><div class="v mono">${esc(t.z6)}</div><div class="note mono">exactly ${esc(t.z)}</div></div>
+      <div class="tile"><div class="k">matches</div><div class="v">${t.pairs.length + t.functions.length}</div><div class="note">${plural(t.pairs.length, "REVOTT pair", "REVOTT pairs")}, ${plural(t.functions.length, "function", "functions")}</div></div>
+      <div class="tile"><div class="k">spectrum</div><div class="v">${counts.on} on · ${counts.between} between</div><div class="note">${counts.before + counts.after} beyond the first or last, of ${sp.length}</div></div></div>
+    <p class="note">${esc(sentLine)} ${t.instants.length > 1 ? "· the clock meets this TNLDY twice: also " + nsk(t.instants[1]) : ""} ${live ? `· <a href="${esc(live)}">REVOTT STAMPS, now</a>` : ""}</p>
+    ${matchedHtml(t)}${near}${feeds}
+    <details open><summary><b>The full spectrum</b>: every MDQNM function at TNLDY ${esc(t.z6)}</summary><p class="note">${verify}</p>${spectrumHtml(sp)}</details>`;
+  $("#close").onclick = e => { e.preventDefault(); history.replaceState(null, "", location.pathname); v.hidden = true; };
+  wireFilter();
+  v.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function toTrigger(r, id) {
+  const den = BigInt(23 * DAY), q = SOLID.parse(r.z);
+  return { id, z: r.z, z6: SOLID.fmt(q), class: SOLID.kind(r), instants: NsukkaYg.instantsOfFrac(q[0], q[1]),
+    pairs: r.pairs.map(([i, j]) => ({ y: KEYS[i][0], x: KEYS[j][0], yi: i, xi: j })),
+    functions: r.hits.map(([k, j]) => ({ k, id: MAPS[k].id, name: MAPS[k].name, ztp: MAPS[k].ztp, unit: MAPS[k].unit, x: KEYS[j][0], xi: j })) };
+}
+function stampsLink(t) {
+  if (!SETTINGS) return null;
+  let y, x;
+  if (t.pairs.length) { y = t.pairs[0].y; x = t.pairs[0].x; }
+  else if (t.functions.length) {
+    x = t.functions[0].x;
+    y = SOLID.text(SOLID.sub(SOLID.div(SOLID.sub(SOLID.parse(t.z), SOLID.Q(14160n)), SOLID.Q(100n)), SOLID.parse(x)));
+    if (y.includes("/")) return null;
+  } else return null;
+  const dec = s => s.includes(".") ? s : s + ".0";
+  const r = { y: { mode: "value", value: dec(y) }, x: { mode: "key", x: dec(x) }, eps: SETTINGS.eps, clock: SETTINGS.clock, domains: [...SETTINGS.domains].sort() };
+  return SETTINGS.stamps_page + "#" + encodeURIComponent(JSON.stringify(r));
+}
+
+/* ---- lists ---- */
+function listHtml(ts, sentOf) {
+  if (!ts.length) return "<p>None.</p>";
+  return `<div class="tbl"><table><tr><th>Nsukka</th><th class="num">TNLDY</th><th>class</th><th>matched SFO-BBs</th>${sentOf ? "<th class=\"num\">items</th>" : ""}</tr>` +
+    ts.map(t => `<tr class="pick" data-id="${esc(t.id)}" data-d="${t.instants[0] ? dateOf(t.instants[0]) : ""}"><td class="mono">${t.instants[0] ? nsk(t.instants[0]) : "—"}</td><td class="num mono">${esc(t.z6)}</td><td>${cls(t.class)}</td><td class="break">${matchedText(t)}</td>${sentOf ? `<td class="num">${sentOf(t)}</td>` : ""}</tr>`).join("") + "</table></div>";
+}
+function wirePicks(root) {
+  root.querySelectorAll("tr.pick").forEach(r => r.onclick = () => { location.hash = `t=${r.dataset.id}&d=${r.dataset.d}`; });
+}
+async function loadNext() {
+  try { UPCOMING = await get("data/upcoming.json", true); } catch (_) { UPCOMING = []; }
+  $("#next").innerHTML = listHtml(UPCOMING.filter(t => t.instants[0] > Date.now() - 600000)) +
+    `<p class="note">Every one is pushed at its instant; its digest replaces the alert once its window has closed and settled.</p>`;
+  wirePicks($("#next"));
+}
+async function loadDigests() {
+  let days = [];
+  try { days = (await get("log/index.json", true)).slice().reverse(); } catch (_) { }
+  if (!days.length) { $("#digests").innerHTML = "<p>No digest has been sent yet.</p>"; return; }
+  let html = "";
+  for (const d of days.slice(0, 4)) {
+    const recs = Object.values(await get(`log/${d}.json`, true)).filter(r => r.trigger && r.digest).reverse();
+    if (!recs.length) continue;
+    html += `<h3>${esc(d)}</h3>` + listHtml(recs.map(r => r.trigger), t => { const r = recs.find(x => x.trigger.id === t.id); return r.feeds ? r.feeds.items.length : "—"; });
+  }
+  if (days.length > 4) html += `<p class="note">Earlier days: ${days.slice(4).map(d => `<a href="log/${esc(d)}.json">${esc(d)}</a>`).join(" · ")}</p>`;
+  $("#digests").innerHTML = html; wirePicks($("#digests"));
+}
+async function about() {
+  let m = null, st = null;
+  try { m = await get("data/manifest.json"); } catch (_) { }
+  try { st = await get("data/status.json", true); } catch (_) { }
+  const c = m ? m.counts : null;
+  $("#about").innerHTML = `<h2>What drives a stamp</h2>
+    <p>A TNLDY at which SFO-BBs match exactly, and nothing else:</p>
+    <ul><li><b>REVOTT</b>: Z = 14160 + 100·(Y + X), Y and X each one of the 401 SFO-BBs: every one of the 401 × 401 pairs.</li>
+    <li><b>MDQNM</b>: Z = Ztp + U·x, an engine function's coordinate (Z − Ztp)/U on SFO-BB x. The functions are every coordinate
+      of TNLDY the engine's sources write, read exactly: functions of Z, the coordinates their vectors label, the coordinates its
+      enumerations print ("… yields"), and its agents on the clock.</li>
+    <li><b>REVOTT + MDQNM</b>: a REVOTT instant that an engine function also reaches exactly.</li></ul>
+    <p>Feeds, words and schedules never start or stop a stamp. The feeds are only reported: REVOTT STAMPS' own stamp of the
+      chosen feeds within ±100·ε TNLDY of Z, on its reconciled clock.</p>
+    ${c ? `<h2>The precomputation</h2><div class="tiles">
+      <div class="tile"><div class="k">SFO-BB keys</div><div class="v">${c.keys}</div></div>
+      <div class="tile"><div class="k">REVOTT pairs</div><div class="v">${c.pairs.toLocaleString()}</div><div class="note">${c.revott_instants.toLocaleString()} distinct TNLDY</div></div>
+      <div class="tile"><div class="k">engine maps</div><div class="v">${c.maps}</div><div class="note">${c.hits.toLocaleString()} SFO-BB instants</div></div>
+      <div class="tile"><div class="k">triggers</div><div class="v">${c.instants.toLocaleString()}</div><div class="note">${c.by_class["revott+mdqnm"].toLocaleString()} both, ${c.by_class.revott.toLocaleString()} REVOTT, ${c.by_class.mdqnm.toLocaleString()} MDQNM</div></div></div>
+      <p class="note mono">table SHA-256 ${esc(m.table_sha256)}</p>` : ""}
+    <p>Files: <a href="data/keys.json">keys.json</a> (the 401 SFO-BBs, exact) · <a href="data/functions.json">functions.json</a> (the maps, exact) ·
+      <a href="data/functions-where.json">functions-where.json</a> (every place the engine writes each) · <a href="data/manifest.json">manifest.json</a> ·
+      <a href="data/upcoming.json">upcoming.json</a> · <a href="log/index.json">log/</a></p>
+    ${st ? `<p class="note">Last run ${nsk(st.run)} Nsukka; the feed archive as of ${nsk(st.as_of)}; active since ${st.since ? nsk(st.since) : "—"}.</p>` : ""}
+    <h2>Notifications</h2>
+    <p>Sent with ntfy to the author's phone. Each alert is scheduled on the ntfy server for its instant, so it arrives on time even while
+      the reading computer sleeps; the digest replaces it in place, without sound, once the window has closed and settled.
+      Tapping a notification opens its digest here.</p>`;
+}
+
+/* ---- tabs, hash, start ---- */
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", x === b));
+  document.querySelectorAll("[data-pane]").forEach(p => p.hidden = p.dataset.pane !== b.dataset.tab);
+  if (b.dataset.tab === "digests") loadDigests();
+  if (b.dataset.tab === "about") about();
+});
+$("#dayGo").onclick = async () => {
+  await base();
+  const d = $("#day").value; if (!d) return;
+  const d0 = Date.parse(d + "T00:00:00+01:00"), den = BigInt(23 * DAY);
+  const rows = SOLID.between(SOLID.Q(BigInt(NsukkaYg.zOf(d0).num), den), SOLID.Q(BigInt(NsukkaYg.zOf(d0 + DAY - 1).num), den), KEYS, MAPS, PREP);
+  const ts = []; for (const r of rows) ts.push(toTrigger(r, await tidOf(r.z)));
+  $("#lookupOut").innerHTML = `<h3>${esc(d)}: ${ts.length} triggers</h3>` + listHtml(ts.filter(t => t.instants.some(ms => dateOf(ms) === d)));
+  wirePicks($("#lookupOut"));
+};
+$("#zGo").onclick = async () => {
+  await base();
+  let q; try { q = SOLID.parse($("#zIn").value); } catch (_) { $("#lookupOut").innerHTML = "<p>A TNLDY is a decimal, as 20824.5, or n/d.</p>"; return; }
+  const z = SOLID.text(q), rows = SOLID.between(q, q, KEYS, MAPS, PREP), sp = SOLID.spectrum(z, KEYS, MAPS, PREP);
+  const ins = NsukkaYg.instantsOfFrac(q[0], q[1]);
+  $("#lookupOut").innerHTML = `<h3>TNLDY ${esc(SOLID.fmt(q))}${ins.length ? " · " + ins.map(nsk).join(" and ") + " Nsukka" : " · no instant"}: ${rows.length ? "a match" : "no SFO-BB matches here"}</h3>` +
+    (rows.length ? matchedHtml(toTrigger(rows[0], await tidOf(rows[0].z))) : "") + spectrumHtml(sp);
+  wireFilter();
+};
+function route() {
+  const m = /^#t=(ss[0-9a-f]+)&d=(\d{4}-\d{2}-\d{2})$/.exec(location.hash);
+  if (m) showTrigger(m[1], m[2]); else $("#view").hidden = true;
+}
+window.addEventListener("hashchange", route);
+(async () => {
+  try { SETTINGS = await get("data/settings.json"); } catch (_) { SETTINGS = null; }
+  await base().catch(() => {});
+  await loadNext();
+  tick(); setInterval(tick, 1000);
+  setInterval(loadNext, 5 * 60000);
+  $("#day").value = dateOf(Date.now());
+  route();
+})();
+</script>
+</body>
+</html>

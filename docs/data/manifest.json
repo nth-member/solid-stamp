@@ -1,0 +1,23 @@
+{
+ "inputs": {
+  "keys.json": "e9f5ac2157e29a30ffaf89c5d1d1a7c5fe07b4e32eb5a8ed3ef7324844a27678",
+  "functions.json": "99a716e223a87b718d21c957045185b4e262e1c9273469da8b3139103f342751"
+ },
+ "counts": {
+  "keys": 401,
+  "maps": 666,
+  "pairs": 160801,
+  "hits": 267066,
+  "instants": 259787,
+  "by_class": {
+   "mdqnm": 192915,
+   "revott": 33557,
+   "revott+mdqnm": 33315
+  },
+  "revott_instants": 66872,
+  "mdqnm_instants": 226230,
+  "outside_calendar": 5136,
+  "met_twice": 148
+ },
+ "table_sha256": "f9840de3c6633e2191be838c6a4cdca5f558618ffe756d163c4f9f2c4f719b06"
+}
