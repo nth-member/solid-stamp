@@ -281,7 +281,8 @@ async function loadNext() {
 }
 async function loadDigests() {
   let days = [];
-  try { days = (await get("log/index.json", true)).slice().reverse(); } catch (_) { }
+  const today = dateOf(Date.now());       // days ahead hold only scheduled alerts
+  try { days = (await get("log/index.json", true)).filter(d => d <= today).reverse(); } catch (_) { }
   if (!days.length) { $("#digests").innerHTML = "<p>No digest has been sent yet.</p>"; return; }
   let html = "";
   for (const d of days.slice(0, 4)) {
