@@ -208,9 +208,12 @@ def main() -> int:
         counts["digests"] += 1
         counts["late"] += late > 30
         state["digests"][d["id"]] = {"at": d["instants"][0], "sent": now, "ntfy": r.get("id")}
+        had = log.get(d) or {}
+        earlier = had.get("earlier_digests", []) + ([{"digest": had["digest"], "feeds_items": len(had["feeds"]["items"])}]
+                                                    if "digest" in had else [])          # a digest sent again keeps the first
         log.put(d, trigger=d, nearby=near, spectrum=rec["spectrum"], feeds=rec["feeds"],
                 digest={"sent": now, "ntfy": r.get("id"), "priority": msg["priority"], "late_minutes": late,
-                        "bytes": len(msg["message"].encode())})
+                        "bytes": len(msg["message"].encode())}, **({"earlier_digests": earlier} if earlier else {}))
 
     # 3  finals: the stamp again, final_hours after the window closed; kept, not sent
     for tid, dg in list(state["digests"].items()):
