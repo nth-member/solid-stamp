@@ -65,6 +65,7 @@ a{color:var(--accent)}
 .tab{background:var(--plane);border:1px solid var(--axis);border-radius:8px 8px 0 0;padding:7px 16px;cursor:pointer;font-weight:600;letter-spacing:.06em;font-size:13px}
 .tab[aria-selected="true"]{background:var(--surface);border-color:var(--ink);color:var(--ink)}
 details summary{cursor:pointer;color:var(--ink-2)}
+tr.grp th{position:static;background:var(--plane);color:var(--ink);text-align:left;font-size:12px;letter-spacing:.05em;text-transform:uppercase}
 .ok{color:var(--hit)} .bad{color:var(--null)}
 .foot{color:var(--muted);font-size:12px;margin-top:26px;line-height:1.6}
 .break{word-break:break-word}
@@ -177,15 +178,27 @@ function spectrumHtml(sp) {
   const pos = (w, lo, hi) => w === "on" ? `<span class="on">on SFO-BB ${esc(k(lo))}</span> <span class="reading">${esc(reading(lo))}</span>`
     : w === "between" ? `between ${esc(k(lo))} <span class="reading">${esc(reading(lo).slice(0, 48))}</span> and ${esc(k(hi))} <span class="reading">${esc(reading(hi).slice(0, 48))}</span>`
     : w === "before" ? `before the first SFO-BB (${esc(k(0))})` : `after the last SFO-BB (${esc(k(KEYS.length - 1))})`;
-  return `<div class="row"><div><label for="spf">Filter</label><input id="spf" placeholder="name, or on"></div></div>
+  // in the order the summary counts them: on an SFO-BB, between two, beyond the first or last; within each, by Ztp
+  const groups = [["on", "On an SFO-BB", r => r[2] === "on"], ["between", "Between two SFO-BBs", r => r[2] === "between"],
+                  ["beyond", "Beyond the first or last SFO-BB", r => r[2] === "before" || r[2] === "after"]];
+  const row = ([i, c, w, lo, hi]) => `<tr data-s="${esc(MAPS[i].names.join(" ").toLowerCase())}" data-g="${w === "on" || w === "between" ? w : "beyond " + w}"><td class="num mono">${i}</td><td class="break">${esc(MAPS[i].name)}<div class="note mono">Ztp ${esc(num(MAPS[i].ztp))} · U ${esc(num(MAPS[i].unit))} d · ${esc(MAPS[i].at)}</div></td><td class="num mono">${esc(c)}</td><td>${pos(w, lo, hi)}</td></tr>`;
+  return `<div class="row"><div><label for="spf">Filter</label><input id="spf" placeholder="a name, or on / between / beyond"></div></div>
     <div class="tbl" style="margin-top:8px"><table id="spt"><tr><th class="num">#</th><th>MDQNM function</th><th class="num">c = (Z − Ztp)/U</th><th>position among the 401 SFO-BBs</th></tr>` +
-    sp.map(([i, c, w, lo, hi]) => `<tr data-s="${esc((MAPS[i].names.join(" ") + " " + w).toLowerCase())}"><td class="num mono">${i}</td><td class="break">${esc(MAPS[i].name)}<div class="note mono">Ztp ${esc(num(MAPS[i].ztp))} · U ${esc(num(MAPS[i].unit))} d · ${esc(MAPS[i].at)}</div></td><td class="num mono">${esc(c)}</td><td>${pos(w, lo, hi)}</td></tr>`).join("") + "</table></div>";
+    groups.map(([g, title, pick]) => { const rs = sp.filter(pick); return `<tr class="grp" data-grp="${g}"><th colspan="4">${title}: ${rs.length}</th></tr>` + rs.map(row).join(""); }).join("") +
+    "</table></div>";
 }
 function wireFilter() {
   const f = $("#spf"); if (!f) return;
-  f.oninput = () => { const q = f.value.trim().toLowerCase(); document.querySelectorAll("#spt tr[data-s]").forEach(r => r.hidden = q && !r.dataset.s.includes(q)); };
+  f.oninput = () => {
+    const q = f.value.trim().toLowerCase(), group = ["on", "between", "beyond", "before", "after"].includes(q);
+    document.querySelectorAll("#spt tr[data-s]").forEach(r => r.hidden = !!q && (group ? !r.dataset.g.split(" ").includes(q) : !r.dataset.s.includes(q)));
+    document.querySelectorAll("#spt tr.grp").forEach(h => {
+      let n = h.nextElementSibling, any = false;
+      while (n && !n.classList.contains("grp")) { if (!n.hidden) any = true; n = n.nextElementSibling; }
+      h.hidden = !any;
+    });
+  };
 }
-
 /* ---- one trigger: as sent, or as foreknown ---- */
 async function showTrigger(id, date) {
   await base();

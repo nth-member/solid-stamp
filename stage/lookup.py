@@ -78,7 +78,8 @@ def main(argv: list[str]) -> int:
     elif cmd == "spectrum":
         z = fparse(args[0])
         fs = solid.functions()["maps"]
-        for k, c, where, lo, hi in solid.spectrum(z):
+        rank = {"on": 0, "between": 1, "before": 2, "after": 2}          # as the summary counts them; within each, by Ztp
+        for k, c, where, lo, hi in sorted(solid.spectrum(z), key=lambda r: (rank[r[2]], r[0])):
             pos = (f"ON SFO-BB {fstr(solid.key_values()[lo])}: {solid.reading(lo)[:50]}" if where == "on" else
                    f"between {fstr(solid.key_values()[lo])} and {fstr(solid.key_values()[hi])}" if where == "between" else
                    f"before the first SFO-BB ({fstr(solid.key_values()[0])})" if where == "before" else

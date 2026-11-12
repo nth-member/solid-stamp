@@ -70,6 +70,15 @@ try {
     const on = await js(`return document.querySelectorAll("#spt tr[data-s] .on").length`);
     const fn = await js(`return document.querySelectorAll("#view h3").length`);
     check("its matched functions are 'on' in the spectrum", on >= 1 && fn >= 1, `${on} on`);
+    const order = await js(`const rows = [...document.querySelectorAll("#spt tr[data-s]")].map(r => r.dataset.g.split(" ")[0]);
+      const rank = {on: 0, between: 1, beyond: 2}; const heads = [...document.querySelectorAll("#spt tr.grp th")].map(h => h.textContent);
+      const n = heads.map(h => +h.split(": ")[1]);
+      return {sorted: rows.every((g, i) => i === 0 || rank[rows[i - 1]] <= rank[g]), heads, sum: n.reduce((a, b) => a + b, 0), on: n[0]}`);
+    check("the spectrum runs as the summary counts it: on, between, beyond", order.sorted && order.sum === 666 && order.on === on, order.heads.join(" · "));
+    await js(`const f = document.querySelector("#spf"); f.value = "on"; f.dispatchEvent(new Event("input"))`);
+    const shown = await js(`return [...document.querySelectorAll("#spt tr[data-s]")].filter(r => !r.hidden).length`);
+    check("the filter 'on' shows the functions on an SFO-BB alone", shown === on, `${shown} shown`);
+    await js(`const f = document.querySelector("#spf"); f.value = ""; f.dispatchEvent(new Event("input"))`);
     await shot(`${label}-trigger`);
     await js(`document.querySelector('[data-tab="digests"]').click()`);
     const dg = await until(`const t = document.querySelector("#digests").textContent; return /No digest/.test(t) ? -1 : document.querySelectorAll("#digests tr.pick").length || null`);
