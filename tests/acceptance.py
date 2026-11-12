@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import random
 import re
 import sqlite3
@@ -220,7 +221,11 @@ def _():
     run.OUT = out
     run.ntfy.publish = lambda cfg, msg, delay_s=None: sent.append((msg["sequence_id"], delay_s)) or {"id": f"m{len(sent)}"}
     run.ntfy.config = lambda: {"server": "https://ntfy.invalid", "topic": "test"}
-    argv = sys.argv
+    argv, env = sys.argv, os.environ.get("GITHUB_ACTIONS")
+    if SETTINGS.get("sender", "laptop") == "github":
+        os.environ["GITHUB_ACTIONS"] = "true"              # run here as the sender would run
+    else:
+        os.environ.pop("GITHUB_ACTIONS", None)
     try:
         sys.argv = ["run.py"]
         run.main()
@@ -241,6 +246,10 @@ def _():
         assert [s for s, _ in third] == [one], f"the third run sent {third}"
     finally:
         sys.argv = argv
+        if env is None:
+            os.environ.pop("GITHUB_ACTIONS", None)
+        else:
+            os.environ["GITHUB_ACTIONS"] = env
         run.ntfy.publish, run.ntfy.config = real_publish, real_config
         run.STATE, run.OLD_STATE, run.LOG, run.OUT = real_state, real_old, real_log, real_out
     return f"first run {first} scheduled, second run {second}, a changed one re-sent under its own sequence ID"

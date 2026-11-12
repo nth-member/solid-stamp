@@ -2,6 +2,7 @@
 """A copy of docs/ with two days of digests, made by the live run against a recording stand-in for ntfy:
 tests/.fixture/, for tests/browser.mjs. Nothing is sent."""
 import json
+import os
 import shutil
 import sys
 import time
@@ -23,5 +24,7 @@ sent = []
 run.ntfy.config = lambda: {"server": "https://ntfy.invalid", "topic": "fixture"}
 run.ntfy.publish = lambda cfg, msg, delay_s=None: sent.append(msg) or {"id": f"fx{len(sent)}"}
 sys.argv = ["run.py"]
+if json.loads((ROOT / "settings.json").read_text()).get("sender", "laptop") == "github":
+    os.environ["GITHUB_ACTIONS"] = "true"                  # run here as the sender would run
 run.main()
 print(f"fixture: {len(sent)} messages recorded; {FIX}")

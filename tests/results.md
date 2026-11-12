@@ -1,6 +1,6 @@
 # SOLID STAMP — acceptance checks
 
-Run 2026-11-12 09:04 Nsukka · table f9840de3c6633e21 · 12/13 pass
+Run 2026-11-12 09:04 Nsukka · table f9840de3c6633e21 · 13/13 pass
 
 | check | result | note |
 |---|---|---|
@@ -15,5 +15,5 @@ Run 2026-11-12 09:04 Nsukka · table f9840de3c6633e21 · 12/13 pass
 | the driver is the match alone: a trigger whose window holds no item is still alerted and digested | PASS | ss6be71236b29f35 |
 | every message fits ntfy's 4,096 bytes: the next 30 days' alerts and the last 3 days' digests | PASS | largest 3856 bytes |
 | every stamped item lies within ±100·ε TNLDY of its trigger, on the reconciled clock | PASS | 543 items checked |
-| duplicates: a second run with nothing new sends nothing; a changed message replaces by the same sequence ID | FAIL | the first run scheduled nothing |
+| duplicates: a second run with nothing new sends nothing; a changed message replaces by the same sequence ID | PASS | first run 27 scheduled, second run 0, a changed one re-sent under its own sequence ID |
 | REVOTT STAMPS links open the same TNLDY: Y + X of the link's request gives the trigger's Z exactly | PASS | 83 links checked |
