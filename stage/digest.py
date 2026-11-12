@@ -112,12 +112,23 @@ def spectrum_line(sp: dict) -> str:
             f"{c['between']} between two, {c['before'] + c['after']} beyond the first or last.")
 
 
-def item_lines(feeds: dict, n: int) -> list[str]:
-    out = []
+def link(url: str) -> str:
+    """A link destination Markdown keeps whole."""
+    return url.replace(" ", "%20").replace("(", "%28").replace(")", "%29").replace("<", "%3C").replace(">", "%3E")
+
+
+def item_lines(feeds: dict, n: int, budget: int) -> list[str]:
+    """Up to n items, each headline a link to its article, as many as fit in `budget` bytes; the rest counted."""
+    out, used = [], 0
     for it in feeds["items"][:n]:
-        out.append(f"- {solid.hm(it[1])} {md(it[7])} — {md(trim(it[4], 110))}")
-    if len(feeds["items"]) > n:
-        out.append(f"- … {len(feeds['items']) - n} more on the digest page")
+        line = f"- {solid.hm(it[1])} {md(it[7])} — [{md(trim(it[4], 110))}]({link(it[5])})"
+        if used + len(line.encode()) + 1 + 48 > budget:
+            break
+        out.append(line)
+        used += len(line.encode()) + 1
+    rest = len(feeds["items"]) - len(out)
+    if rest:
+        out.append(f"- … {rest} more on the digest page")
     return out
 
 
@@ -171,10 +182,10 @@ def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_mi
         parts.append(["", f"**Feeds** {window_text(settings)} · the digest replaces this note when the window has "
                           f"closed ({solid.hm(b)}) and settled ({settings['settle_minutes']} min)."])
     else:
-        lines = ["", feeds_line(rec["feeds"], settings), ""] + item_lines(rec["feeds"], settings["items_in_message"])
-        if late_minutes > 30:
-            lines += ["", f"_Sent {late_minutes // 60} h {late_minutes % 60} min after it settled._"]
-        parts.append(lines)
+        tail = ["", f"_Sent {late_minutes // 60} h {late_minutes % 60} min after it settled._"] if late_minutes > 30 else []
+        head_lines = ["", feeds_line(rec["feeds"], settings), ""]
+        room = MAX_BYTES - len("\n".join("\n".join(p) for p in parts + [head_lines, tail] if p).encode()) - 2
+        parts.append(head_lines + item_lines(rec["feeds"], settings["items_in_message"], room) + tail)
     click, actions = links(d, settings)
     msg = {"title": title(d), "message": fit(parts), "markdown": True, "priority": settings["priority"][d["class"]],
            "tags": [d["class"].replace("+", "-")], "sequence_id": d["id"]}
