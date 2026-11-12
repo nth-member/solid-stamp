@@ -25,6 +25,7 @@ import bisect
 import datetime as dt
 import hashlib
 import json
+import os
 import sys
 import urllib.parse
 from collections import defaultdict
@@ -43,6 +44,9 @@ STAMPS = path("revott_stamps")
 sys.path.insert(0, str(STAMPS / "stage"))
 import nsukka_yg_clock as clock  # noqa: E402  (REVOTT STAMPS' copy of the canonical clock)
 import stamp as stamps  # noqa: E402
+
+if os.environ.get("SOLID_STAMPS_DATA"):          # on GitHub: the published archive brought up to date (stage/recent.py)
+    stamps.DATA = Path(os.environ["SOLID_STAMPS_DATA"])
 
 DATA = ROOT / "docs" / "data"
 ZTP, U = F(14160), F(100)                   # REVOTT: Z = 14160 + 100·(Y + X)

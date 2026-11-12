@@ -129,13 +129,13 @@ per-priority settings on the phone apply on top.
 
 ## Persistence and recovery
 
-- **No duplicates.** `.state.json` (untracked) remembers what was scheduled and sent. The sequence ID makes any
-  repeat replace in place, never add a second notification.
+- **No duplicates.** `state/state.json` remembers what was scheduled and sent. The sequence ID makes any repeat
+  replace in place, never add a second notification.
 - **Changed definitions.** A scheduled alert whose message changed is scheduled again, which replaces it on the
   server. One that no longer matches is deleted before delivery. Such changes come from new keys, new maps or new
   settings.
-- **Missed runs and lost connections.** A failed send is left for the next run. Digests catch up after the computer
-  wakes, marked late. Alerts were already scheduled on the server for up to 70 hours ahead.
+- **Missed runs and lost connections.** A failed send is left for the next run. A digest sent late says so.
+  Alerts were already scheduled on the server for up to 70 hours ahead.
 - **Activation.** The first live run marks the start. Nothing before it is pushed.
 - **An audit trail.** The log keeps every trigger's record as sent, and the final stamp a day later. The rolling
   daily commit keeps the history.
@@ -145,7 +145,35 @@ per-priority settings on the phone apply on top.
 
 ## How it runs
 
-On the reading computer, every 15 minutes, after REVOTT STAMPS' refresh (which it waits for, by that refresh's lock):
+**On GitHub** (`.github/workflows/solid.yml`), every 15 minutes, whether or not the author's computer is on, once
+`settings.json` names `"sender": "github"`. Each run (`stage/github.sh`):
+
+1. takes the last days of REVOTT STAMPS' published archive and of JOMO SFO-WAM's feed readings. GitHub keeps
+   reading the feeds every 15 minutes while the author's computer sleeps, and its readings are logged in that
+   repository's `feeds/history/`.
+2. `stage/recent.py` brings the archive up to the latest reading. Every item the published archive holds keeps
+   its row exactly, page times included. Every item read since gets the row REVOTT STAMPS' own `reconcile()`
+   gives it with no page time yet: the feed's time, the day only, or the moment it was first seen. Reading
+   article pages for their own time stays with the author's computer: it is slow, and some publishers refuse
+   GitHub's servers.
+3. `stage/run.py` builds the table, schedules the alerts, sends the digests, keeps the finals and writes the
+   record.
+4. It commits `docs/log`, the run's files in `docs/data` and `state/` as one rolling commit per Nsukka day, and
+   pushes. If a push from elsewhere landed first, the run lays its own files onto it and pushes again. Only the
+   run writes them, and a lost state would send a digest twice.
+
+The chain works as JOMO SFO-WAM's Feeds does. Each run's second job waits on the environment `solid-timer`
+(a 14-minute wait timer, set in **Settings › Environments**), then starts the next run. The topic is the
+repository secret `NTFY_TOPIC` (**Settings › Secrets and variables › Actions**); without it nothing is sent. The
+chain is alive while **Actions › SOLID STAMP** shows a run *Waiting*. When none is, **Run workflow** starts it
+again, and so does a push that changes the code or the settings.
+
+`tests/github_sim.py` checks the GitHub path against a night the author's computer slept. It takes REVOTT
+STAMPS' archive as it stood then, brings it up to date from GitHub's readings, and stamps every trigger of the
+night both ways. On 2026-11-11/12 both ways gave the same items for both triggers.
+
+**On the author's computer** the same run works from cron, after REVOTT STAMPS' refresh, when `settings.json`
+names `"sender": "laptop"`. The run that is not the sender sends nothing, so the two never both send.
 
     9-59/15 * * * * $HOME/solid-stamp/stage/cron.sh
 
@@ -153,21 +181,26 @@ On the reading computer, every 15 minutes, after REVOTT STAMPS' refresh (which i
 
 1. `build/engine.py --if-changed`
 2. `stage/run.py`, which rebuilds the table first if an input changed, then schedules, sends and records
-3. a commit of `docs/log` and `docs/data` only, one rolling commit per Nsukka day
+3. a commit of `docs/log`, `docs/data` and `state/`, one rolling commit per Nsukka day
 4. a push, when a remote exists
 
-The log goes to `~/.cache/solid-stamp/run.log`. Local paths are in the untracked `.paths.json`: `revott_stamps`, the
-REVOTT STAMPS checkout whose archive and stamp are used, and `engine`, the engine sources.
+The log goes to `~/.cache/solid-stamp/run.log`. Local paths are in the untracked `.paths.json`: `revott_stamps`,
+`jomo` and `engine`. `state/state.json` (committed) remembers what was scheduled and sent. It holds no topic.
+
+To change code on the author's computer while GitHub sends, first move onto GitHub's latest record:
+`git fetch && git reset --keep origin/main`. The record's commits are rolling.
 
 `settings.json`:
 
 | setting | default | |
 |---|---|---|
+| `sender` | `github` | where the alerts and digests are sent from: `github` or `laptop`. The other place sends nothing |
 | `eps` | 0.00005 | the variac in X units at 100 days: ±100·ε TNLDY = ±7.2 min |
 | `clock`, `domains` | reconciled; the six feeds | as REVOTT STAMPS' standing requests: Balkans, geopolitical analysis, Middle East, Russia & Eurasia, science & technology, world (120 of the 232 sources) |
 | `settle_minutes` | 120 | how long after the window closes the digest waits |
 | `final_hours` | 24 | when the final stamp is recorded (not pushed) |
 | `horizon_hours` | 70 | how far ahead alerts are scheduled (ntfy's limit is 72) |
+| `lookback_days` | 3 | how far back an unsent digest is still sent |
 | `priority` | 4 / 3 / 3 | per class: REVOTT + MDQNM, REVOTT, MDQNM |
 | `page`, `stamps_page` | | this site (the notification's tap), REVOTT STAMPS |
 
@@ -189,6 +222,7 @@ python3 tests/acceptance.py         # the dry-run acceptance checks -> tests/res
 node tests/fidelity.mjs             # docs/solid.js = the Python reference: spectra byte for byte, triggers per stretch
 python3 tests/fixture.py && node tests/browser.mjs   # the page in headless Firefox, desktop and phone widths
 python3 stage/run.py --dry-run --since "2026-11-10T12:00" --until "2026-11-11T20:00" --show 2   # replay, print messages
+python3 tests/github_sim.py         # the GitHub path against a night this computer slept, item for item
 ```
 
 `acceptance.py` checks the following:

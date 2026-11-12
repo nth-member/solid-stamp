@@ -1,5 +1,5 @@
 {
- "note": "SOLID STAMP's settings. Stamps are driven by exact matches to SFO-BBs only; these settings shape the digest and its delivery, never which TNLDY stamps. eps: the variac, in X units at REVOTT's 100 days (0.00005 = ±7.2 min about Z). clock and domains: REVOTT STAMPS' own (reconciled clock; the six feeds chosen for stamping). settle_minutes: how long after the window closes the digest waits for late items. final_hours: when the final stamp is recorded (not pushed). horizon_hours: how far ahead alerts are scheduled on the ntfy server (its limit is 72). priority: ntfy priority per class (1 min, 2 low/silent, 3 default, 4 high, 5 max); every class is pushed, and every match is in view (3 or higher), as the author asked on 2026-11-11. items_in_message: feed items shown in the notification (all are on the digest page). page: the SOLID STAMP site, once published; stamps_page: REVOTT STAMPS.",
+ "note": "SOLID STAMP's settings. Stamps are driven by exact matches to SFO-BBs only; these settings shape the digest and its delivery, never which TNLDY stamps. eps: the variac, in X units at REVOTT's 100 days (0.00005 = ±7.2 min about Z). clock and domains: REVOTT STAMPS' own (reconciled clock; the six feeds chosen for stamping). settle_minutes: how long after the window closes the digest waits for late items. final_hours: when the final stamp is recorded (not pushed). horizon_hours: how far ahead alerts are scheduled on the ntfy server (its limit is 72). priority: ntfy priority per class (1 min, 2 low/silent, 3 default, 4 high, 5 max); every class is pushed, and every match is in view (3 or higher), as the author asked on 2026-11-11. items_in_message: feed items shown in the notification (all are on the digest page). page: the SOLID STAMP site, once published; stamps_page: REVOTT STAMPS. sender: where the alerts and digests are sent from, laptop (this computer's cron) or github (the Actions workflow); the other place sends nothing. lookback_days: how far back an unsent digest is still sent.",
  "eps": "0.00005",
  "clock": "reconciled",
  "domains": [
@@ -20,5 +20,7 @@
  },
  "items_in_message": 8,
  "page": "https://nth-member.github.io/solid-stamp/",
- "stamps_page": "https://nth-member.github.io/revott-stamps/"
+ "stamps_page": "https://nth-member.github.io/revott-stamps/",
+ "sender": "laptop",
+ "lookback_days": 3
 }

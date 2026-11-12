@@ -1,0 +1,105 @@
+# SOLID STAMP on GitHub, every 15 minutes, whether or not the author's computer is on: the alerts scheduled on
+# ntfy for their instants, each digest sent once its window has closed and settled, and the record committed
+# (stage/github.sh). It sends only while settings.json names "github" as the sender, and only with the
+# repository secret NTFY_TOPIC (Settings > Secrets and variables > Actions).
+#
+# GitHub's own schedule is best-effort and fires rarely, so, as JOMO SFO-WAM's Feeds does, each run on main starts
+# the next one: its "next" job waits on the wait timer of the environment solid-timer (14 minutes, set in
+# Settings > Environments; the wait uses no runner), then dispatches this workflow again. A run that began less
+# than 10 minutes earlier -- no wait timer set -- starts nothing, so the chain cannot run away; a newer run's
+# "next" job replaces an older one's, so there is one chain. It is alive while Actions > SOLID STAMP shows a run
+# "Waiting"; when none is, Run workflow (or a push changing the code or settings) starts it again.
+name: SOLID STAMP
+on:
+  schedule:
+    - cron: "11-59/15 * * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/solid.yml
+      - stage/**
+      - build/**
+      - settings.json
+permissions: {}
+jobs:
+  run:
+    name: Schedule the alerts, send the digests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    concurrency:
+      group: solid-run-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v7
+        with:
+          repository: nth-member/revott-stamps
+          path: .work/revott-stamps
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /stage/
+            /docs/data/*.json
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: 3pp-noah/jomo-sfo-wam
+          path: .work/jomo-sfo-wam
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /feeds/catalogue.json
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Schedule, send and record
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          git config user.name nth-member
+          git config user.email nth-member@users.noreply.github.com
+          stage/github.sh
+
+  next:
+    name: Wait 14 minutes, then start the next run
+    needs: run
+    if: ${{ always() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: solid-timer
+    permissions:
+      actions: write
+      contents: read
+    concurrency:
+      group: solid-next
+      cancel-in-progress: true
+    steps:
+      - name: Start the next run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          created=$(gh api "repos/$GH_REPO/actions/runs/$GITHUB_RUN_ID" --jq .created_at)
+          waited=$(( $(date +%s) - $(date -d "$created" +%s) ))
+          if [ "$waited" -lt 600 ]; then
+            echo "::warning::This run began only ${waited}s ago, so the solid-timer wait timer is not set; no next run is started."
+            exit 0
+          fi
+          newer=$(gh run list --workflow solid.yml --branch main --limit 30 --json databaseId,status,createdAt \
+            --jq "[.[] | select(.databaseId != $GITHUB_RUN_ID and .status != \"completed\" and .createdAt > \"$created\")] | length")
+          if [ "$newer" -gt 0 ]; then
+            echo "A newer run is under way; it starts the next one."
+            exit 0
+          fi
+          for i in 1 2 3; do
+            gh workflow run solid.yml --ref main && { echo "Next run started, after ${waited}s."; exit 0; }
+            sleep 20
+          done
+          exit 1

@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import os
 import sys
 import time
 from fractions import Fraction as F
@@ -41,7 +42,8 @@ import ntfy  # noqa: E402
 import solid  # noqa: E402
 from exact import fparse  # noqa: E402
 
-STATE = ROOT / ".state.json"
+STATE = ROOT / "state" / "state.json"      # committed: what was scheduled and sent (no topic)
+OLD_STATE = ROOT / ".state.json"
 LOG = ROOT / "docs" / "log"
 OUT = ROOT / "docs" / "data"
 MINUTE = 60_000
@@ -60,6 +62,9 @@ def parse_time(s: str) -> int:
 
 
 def load_state() -> dict:
+    if not STATE.exists() and OLD_STATE.exists():          # before 2026-11-12 the state was local and untracked
+        STATE.parent.mkdir(parents=True, exist_ok=True)
+        STATE.write_text(OLD_STATE.read_text())
     return json.loads(STATE.read_text()) if STATE.exists() else {"since": None, "alerts": {}, "digests": {}, "finals": {}}
 
 
@@ -111,6 +116,10 @@ def main() -> int:
     a = ap.parse_args()
 
     settings = json.loads((ROOT / "settings.json").read_text())
+    here = "github" if os.environ.get("GITHUB_ACTIONS") else "laptop"
+    if settings.get("sender", "laptop") != here and not a.dry_run:
+        print(f"solid: the sender is {settings.get('sender')}; this {here} run sends nothing")
+        return 0
     cfg = ntfy.config()
     dry = a.dry_run or cfg is None
     if cfg is None and not a.dry_run:
@@ -182,7 +191,7 @@ def main() -> int:
             counts["deleted"] += 1
 
     # 2  digests, once the archive has read past the window's close and the settling time
-    lookback = max(since, now - 10 * 24 * 60 * MINUTE)
+    lookback = max(since, now - settings.get("lookback_days", 3) * 24 * 60 * MINUTE)
     for d in db.triggers(con, lookback, now):
         if d["id"] in state["digests"]:
             continue
@@ -239,7 +248,8 @@ def main() -> int:
         for k in ("alerts", "digests"):
             state[k] = {t: v for t, v in state[k].items() if v["at"] >= keep}
         state["finals"] = {t: v for t, v in state["finals"].items() if t in state["digests"]}
-        STATE.write_text(json.dumps(state, separators=(",", ":")))
+        STATE.parent.mkdir(parents=True, exist_ok=True)
+        STATE.write_text(json.dumps(state, separators=(",", ":"), sort_keys=True))
     print(f"solid: {'dry run, ' if dry else ''}as of {solid.nsukka(as_of, False)} Nsukka; {counts}; "
           f"next 7 days: {len(upcoming)} triggers")
     return 0

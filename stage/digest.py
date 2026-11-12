@@ -173,7 +173,7 @@ def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_mi
     else:
         lines = ["", feeds_line(rec["feeds"], settings), ""] + item_lines(rec["feeds"], settings["items_in_message"])
         if late_minutes > 30:
-            lines += ["", f"_Sent {late_minutes // 60} h {late_minutes % 60} min after it settled: the reading computer was not running._"]
+            lines += ["", f"_Sent {late_minutes // 60} h {late_minutes % 60} min after it settled._"]
         parts.append(lines)
     click, actions = links(d, settings)
     msg = {"title": title(d), "message": fit(parts), "markdown": True, "priority": settings["priority"][d["class"]],

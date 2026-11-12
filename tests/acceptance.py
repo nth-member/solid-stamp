@@ -212,8 +212,9 @@ def _():
     sent = []
     real_publish, real_config = run.ntfy.publish, run.ntfy.config
     tmp = Path(tempfile.mkdtemp())
-    real_state, real_log, real_out = run.STATE, run.LOG, run.OUT
-    run.STATE, run.LOG = tmp / "state.json", tmp / "log"
+    real_state, real_old, real_log, real_out = run.STATE, run.OLD_STATE, run.STATE, run.OUT
+    real_log = run.LOG
+    run.STATE, run.OLD_STATE, run.LOG = tmp / "state.json", tmp / "no-old-state.json", tmp / "log"
     out = tmp / "data"; out.mkdir()
     (out / "manifest.json").write_text((ROOT / "docs/data/manifest.json").read_text())
     run.OUT = out
@@ -241,7 +242,7 @@ def _():
     finally:
         sys.argv = argv
         run.ntfy.publish, run.ntfy.config = real_publish, real_config
-        run.STATE, run.LOG, run.OUT = real_state, real_log, real_out
+        run.STATE, run.OLD_STATE, run.LOG, run.OUT = real_state, real_old, real_log, real_out
     return f"first run {first} scheduled, second run {second}, a changed one re-sent under its own sequence ID"
 
 

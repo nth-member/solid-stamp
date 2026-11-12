@@ -17,7 +17,7 @@ if FIX.exists():
 shutil.copytree(ROOT / "docs", FIX, ignore=shutil.ignore_patterns("log"))
 now = time.time()
 t0 = now - 2 * 86400
-run.STATE, run.LOG, run.OUT = FIX / "state.json", FIX / "log", FIX / "data"
+run.STATE, run.OLD_STATE, run.LOG, run.OUT = FIX / "state.json", FIX / "no-old-state.json", FIX / "log", FIX / "data"
 run.STATE.write_text(json.dumps({"since": int(t0 * 1000), "alerts": {}, "digests": {}, "finals": {}}))
 sent = []
 run.ntfy.config = lambda: {"server": "https://ntfy.invalid", "topic": "fixture"}
