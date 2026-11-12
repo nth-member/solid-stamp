@@ -120,8 +120,9 @@ Each trigger gets one notification, under its id as sequence ID:
    closes;
 2. **the digest**, which replaces the alert once the window has closed (Z + 100·ε) and settled (`settle_minutes`,
    default 120: half the feed items arrive within about 2 h of publication). The archive's as-of must be past that
-   point, so the feeds have been read across it. The digest adds the feeds and the first items. The rest are on the
-   page.
+   point, so the feeds have been read across it. The digest adds the feeds and the first items, each headline a link
+   to its article (tappable in the ntfy app; in the drawer the notification itself opens the page). The rest are
+   on the page.
 
 The priority by class is REVOTT + MDQNM 4 (high, a pop-up) and REVOTT 3 and MDQNM 3 (default sound), so every match is in view (the author's choice, 2026-11-11).
 Every class is pushed; the priority only sets how loudly. The numbers are in `settings.json`. The ntfy app's
