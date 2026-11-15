@@ -1,6 +1,6 @@
 # SOLID STAMP — acceptance checks
 
-Run 2026-11-15 17:41 Nsukka · table f9840de3c6633e21 · 14/14 pass
+Run 2026-11-15 17:50 Nsukka · table f9840de3c6633e21 · 14/14 pass
 
 | check | result | note |
 |---|---|---|
@@ -13,7 +13,7 @@ Run 2026-11-15 17:41 Nsukka · table f9840de3c6633e21 · 14/14 pass
 | every live trigger is an exact match: the next 30 days, each pair and hit recomputed from the keys | PASS | 296 triggers in 30 days: {'revott+mdqnm': 49, 'revott': 24, 'mdqnm': 223} |
 | the spectrum's 'on' entries are exactly the trigger's matched functions (200 triggers) | PASS |  |
 | the driver is the match alone: a trigger whose window holds no item is still alerted and digested | PASS | ss054941f3d1bf09 |
-| every message fits ntfy's 4,096 bytes: the next 30 days' alerts and the last 3 days' digests | PASS | largest 2935 bytes |
+| every message fits ntfy's 4,096 bytes, and every digest goes at digest_min_priority or more | PASS | largest 2935 bytes |
 | every stamped item lies within ±100·ε TNLDY of its trigger, on the reconciled clock | PASS | 389 items checked |
 | duplicates: a second run with nothing new sends nothing; a changed message replaces by the same sequence ID | PASS | first run 26 scheduled, second run 0, a changed one re-sent under its own sequence ID |
 | the morning re-send: a digest first sent in the night is sent again once, from 07:00, under its sequence ID | PASS | the digest of 20825.340000 sent again once at 07:10, not again after |

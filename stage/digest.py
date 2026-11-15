@@ -189,7 +189,10 @@ def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_mi
         room = MAX_BYTES - len("\n".join("\n".join(p) for p in parts + [head_lines, tail] if p).encode()) - 2
         parts.append(head_lines + item_lines(rec["feeds"], settings["items_in_message"], room) + tail)
     click, actions = links(d, settings)
-    msg = {"title": title(d), "message": fit(parts), "markdown": True, "priority": settings["priority"][d["class"]],
+    prio = settings["priority"][d["class"]]
+    if rec is not None:              # a digest: at least digest_min_priority, so Firebase carries it as urgent
+        prio = max(prio, settings.get("digest_min_priority", 0))
+    msg = {"title": title(d), "message": fit(parts), "markdown": True, "priority": prio,
            "tags": [d["class"].replace("+", "-")], "sequence_id": d["id"]}
     if click:
         msg["click"] = click

@@ -124,6 +124,12 @@ Each trigger gets one notification, under its id as sequence ID:
    to its article (tappable in the ntfy app; in the drawer the notification itself opens the page). The rest are
    on the page.
 
+**Digests at priority 4.** ntfy.sh hands a message of priority 4 or 5 to Google's Firebase as urgent ("high"),
+which reaches a phone even in deep sleep; one of priority 3 goes as normal, which Android may hold back for
+hours. So every digest goes out at priority 4 or more (`digest_min_priority`), whatever its class. If the alert
+is still showing, the digest replaces it without sound. If it was dismissed, the digest makes the long vibration
+and pop-up of priority 4. Alerts keep their class's priority.
+
 **The morning re-send.** A phone in deep sleep can miss a message: on 2026-11-15 the digest sent at 02:27 never
 reached the phone, though every daytime one did. So each morning, from 07:00 Nsukka (`morning_resend`), every
 digest first sent between 22:00 the evening before and 07:00 is stamped again and sent once more under its
@@ -208,6 +214,7 @@ To change code on the author's computer while GitHub sends, first move onto GitH
 | `final_hours` | 24 | when the final stamp is recorded (not pushed) |
 | `horizon_hours` | 70 | how far ahead alerts are scheduled (ntfy's limit is 72) |
 | `lookback_days` | 3 | how far back an unsent digest is still sent |
+| `digest_min_priority` | 4 | the least priority a digest goes out at: 4 makes Firebase carry it as urgent |
 | `morning_resend` | 07:00; 22:00–07:00 | when the night's digests are sent again, and which night |
 | `priority` | 4 / 3 / 3 | per class: REVOTT + MDQNM, REVOTT, MDQNM |
 | `page`, `stamps_page` | | this site (the notification's tap), REVOTT STAMPS |

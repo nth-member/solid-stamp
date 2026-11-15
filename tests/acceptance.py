@@ -180,7 +180,7 @@ def _():
     return d["id"]
 
 
-@check("every message fits ntfy's 4,096 bytes: the next 30 days' alerts and the last 3 days' digests")
+@check("every message fits ntfy's 4,096 bytes, and every digest goes at digest_min_priority or more")
 def _():
     now = int(time.time() * 1000)
     big = 0
@@ -190,8 +190,10 @@ def _():
         big = max(big, n)
     for d in db.triggers(con, now - 3 * 86400000, now - 6 * 3600000):
         near = db.nearby(con, fparse(d["z"]), F(SETTINGS["eps"]) * solid.U)
-        n = len(digest.payload(d, SETTINGS, digest.record(d, SETTINGS, near), near)["message"].encode())
+        dg = digest.payload(d, SETTINGS, digest.record(d, SETTINGS, near), near)
+        n = len(dg["message"].encode())
         assert n <= 4096, (d["id"], n)
+        assert dg["priority"] >= SETTINGS.get("digest_min_priority", 0), (d["id"], dg["priority"])
         big = max(big, n)
     return f"largest {big} bytes"
 
