@@ -255,6 +255,52 @@ def _():
     return f"first run {first} scheduled, second run {second}, a changed one re-sent under its own sequence ID"
 
 
+@check("the morning re-send: a digest first sent in the night is sent again once, from 07:00, under its sequence ID")
+def _():
+    mr = SETTINGS.get("morning_resend")
+    assert mr, "no morning_resend in settings.json"
+    real = (run.STATE, run.OLD_STATE, run.LOG, run.OUT, run.ntfy.publish, run.ntfy.config, run.time.time, sys.argv,
+            os.environ.get("GITHUB_ACTIONS"))
+    tmp = Path(tempfile.mkdtemp())
+    out = tmp / "data"; out.mkdir()
+    (out / "manifest.json").write_text((ROOT / "docs/data/manifest.json").read_text())
+    run.STATE, run.OLD_STATE, run.LOG, run.OUT = tmp / "state.json", tmp / "none.json", tmp / "log", out
+    sent = []
+    run.ntfy.publish = lambda cfg, msg, delay_s=None: sent.append((msg["sequence_id"], delay_s, msg["message"])) or {"id": f"m{len(sent)}"}
+    run.ntfy.config = lambda: {"server": "https://ntfy.invalid", "topic": "test"}
+    if SETTINGS.get("sender", "laptop") == "github":
+        os.environ["GITHUB_ACTIONS"] = "true"
+    try:
+        now = int(time.time() * 1000)
+        today = run.nsukka_date(now - 24 * 3600000)                      # yesterday: its night lies in the archive
+        seven = run.parse_time(f"{today}T{mr['at']}") + 10 * 60000        # 07:10 that morning
+        night = [d for d in db.triggers(con, seven - 9 * 3600000, seven - 3 * 3600000)]
+        assert night, "no trigger in that night to test with"
+        d = night[0]
+        first = d["instants"][0] + 135 * 60000                            # its digest, sent in the night
+        assert run.parse_time(f"{today}T{mr['night_until']}") > first
+        run.STATE.write_text(json.dumps({"since": seven - 5 * 60000, "alerts": {}, "finals": {},
+                                         "digests": {d["id"]: {"at": d["instants"][0], "sent": first, "ntfy": "night"}}}))
+        run.time.time = lambda: seven / 1000
+        sys.argv = ["run.py"]
+        run.main()
+        again = [x for x in sent if x[0] == d["id"] and x[1] is None]
+        assert len(again) == 1, f"sent again {len(again)} times"
+        assert "Sent again in the morning" in again[0][2]
+        st = json.loads(run.STATE.read_text())
+        assert st["morning_done"] == today and st["digests"][d["id"]]["first_sent"] == first
+        n = len(sent)
+        run.main()                                                        # the next run, the same morning
+        assert not [x for x in sent[n:] if x[0] == d["id"]], "sent again a second time"
+    finally:
+        (run.STATE, run.OLD_STATE, run.LOG, run.OUT, run.ntfy.publish, run.ntfy.config, run.time.time, sys.argv, env) = real
+        if env is None:
+            os.environ.pop("GITHUB_ACTIONS", None)
+        else:
+            os.environ["GITHUB_ACTIONS"] = env
+    return f"the digest of {d['z6']} sent again once at 07:10, not again after"
+
+
 @check("REVOTT STAMPS links open the same TNLDY: Y + X of the link's request gives the trigger's Z exactly")
 def _():
     now = int(time.time() * 1000)

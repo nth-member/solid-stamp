@@ -124,6 +124,12 @@ Each trigger gets one notification, under its id as sequence ID:
    to its article (tappable in the ntfy app; in the drawer the notification itself opens the page). The rest are
    on the page.
 
+**The morning re-send.** A phone in deep sleep can miss a message: on 2026-11-15 the digest sent at 02:27 never
+reached the phone, though every daytime one did. So each morning, from 07:00 Nsukka (`morning_resend`), every
+digest first sent between 22:00 the evening before and 07:00 is stamped again and sent once more under its
+sequence ID. One still showing is replaced without sound, and one that was missed arrives then, noting when it
+was first sent. The log keeps the night's send as an earlier digest.
+
 The priority by class is REVOTT + MDQNM 4 (high, a pop-up) and REVOTT 3 and MDQNM 3 (default sound), so every match is in view (the author's choice, 2026-11-11).
 Every class is pushed; the priority only sets how loudly. The numbers are in `settings.json`. The ntfy app's
 per-priority settings on the phone apply on top.
@@ -202,6 +208,7 @@ To change code on the author's computer while GitHub sends, first move onto GitH
 | `final_hours` | 24 | when the final stamp is recorded (not pushed) |
 | `horizon_hours` | 70 | how far ahead alerts are scheduled (ntfy's limit is 72) |
 | `lookback_days` | 3 | how far back an unsent digest is still sent |
+| `morning_resend` | 07:00; 22:00–07:00 | when the night's digests are sent again, and which night |
 | `priority` | 4 / 3 / 3 | per class: REVOTT + MDQNM, REVOTT, MDQNM |
 | `page`, `stamps_page` | | this site (the notification's tap), REVOTT STAMPS |
 

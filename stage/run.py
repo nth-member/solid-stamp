@@ -13,6 +13,8 @@ Each run, from the precomputed database (stage/db.py) and REVOTT STAMPS' archive
               deleted before it is delivered
   2  digests  every trigger whose window has closed and settled -- by the archive's as-of, so the feeds
               have been read past it -- is stamped and its digest sent, replacing the alert in place; once
+  2b morning  once a day, from morning_resend "at", every digest first sent in the night before is sent again
+              under its sequence ID: a phone in deep sleep can miss a message
   3  finals   final_hours after its window closed, each digested trigger is stamped again and the record
               kept, not sent
   4  record   docs/log/<Nsukka date>.json holds every trigger's record, alert and digest as sent;
@@ -161,7 +163,7 @@ def main() -> int:
         sent += 1
         return r
 
-    counts = {"alerts": 0, "rescheduled": 0, "deleted": 0, "digests": 0, "finals": 0, "late": 0}
+    counts = {"alerts": 0, "rescheduled": 0, "deleted": 0, "digests": 0, "resent": 0, "finals": 0, "late": 0}
 
     # 1  alerts, up to the horizon
     ahead = db.triggers(con, max(now + MINUTE // 6, since), now + settings["horizon_hours"] * 60 * MINUTE)
@@ -190,6 +192,25 @@ def main() -> int:
             del state["alerts"][tid]
             counts["deleted"] += 1
 
+    def send_digest(d: dict, late: int, again: int | None = None) -> dict | None:
+        """Stamp the trigger now, send its digest under its sequence ID, and record it (a send before is kept)."""
+        near = db.nearby(con, fparse(d["z"]), h)
+        rec = digest.record(d, settings, near)
+        msg = digest.payload(d, settings, rec, near, late, again)
+        r = send(msg)
+        if r is None:
+            return None
+        state["digests"][d["id"]] = {"at": d["instants"][0], "sent": now, "ntfy": r.get("id"),
+                                     **({"first_sent": again} if again else {})}
+        had = log.get(d) or {}
+        earlier = had.get("earlier_digests", []) + ([{"digest": had["digest"], "feeds_items": len(had["feeds"]["items"])}]
+                                                    if "digest" in had else [])          # a digest sent again keeps the first
+        log.put(d, trigger=d, nearby=near, spectrum=rec["spectrum"], feeds=rec["feeds"],
+                digest={"sent": now, "ntfy": r.get("id"), "priority": msg["priority"], "late_minutes": late,
+                        "bytes": len(msg["message"].encode()), **({"morning_resend_of": again} if again else {})},
+                **({"earlier_digests": earlier} if earlier else {}))
+        return r
+
     # 2  digests, once the archive has read past the window's close and the settling time
     lookback = max(since, now - settings.get("lookback_days", 3) * 24 * 60 * MINUTE)
     for d in db.triggers(con, lookback, now):
@@ -198,22 +219,34 @@ def main() -> int:
         a_ms, b_ms = window(d, settings)
         if b_ms + settle > as_of or a_ms < first_reading:
             continue
-        near = db.nearby(con, fparse(d["z"]), h)
-        rec = digest.record(d, settings, near)
         late = 0 if a.since else max(0, (now - (b_ms + settle)) // MINUTE)
-        msg = digest.payload(d, settings, rec, near, late)
-        r = send(msg)
-        if r is None:
+        if send_digest(d, late) is None:
             continue
         counts["digests"] += 1
         counts["late"] += late > 30
-        state["digests"][d["id"]] = {"at": d["instants"][0], "sent": now, "ntfy": r.get("id")}
-        had = log.get(d) or {}
-        earlier = had.get("earlier_digests", []) + ([{"digest": had["digest"], "feeds_items": len(had["feeds"]["items"])}]
-                                                    if "digest" in had else [])          # a digest sent again keeps the first
-        log.put(d, trigger=d, nearby=near, spectrum=rec["spectrum"], feeds=rec["feeds"],
-                digest={"sent": now, "ntfy": r.get("id"), "priority": msg["priority"], "late_minutes": late,
-                        "bytes": len(msg["message"].encode())}, **({"earlier_digests": earlier} if earlier else {}))
+
+    # 2b  the morning re-send: once a day, from morning_resend "at", every digest first sent in the night before
+    #     (night_from yesterday until night_until today) is stamped and sent again under its sequence ID. A phone
+    #     in deep sleep can miss a message; one still showing is replaced without sound, one missed arrives now.
+    mr = settings.get("morning_resend")
+    if mr:
+        today = nsukka_date(now)
+        if now >= parse_time(f"{today}T{mr['at']}") and state.get("morning_done") != today:
+            n0 = parse_time(f"{today}T{mr['night_from']}") - 24 * 60 * MINUTE
+            n1 = parse_time(f"{today}T{mr['night_until']}")
+            done = True
+            for tid, dg in sorted(state["digests"].items(), key=lambda kv: kv[1]["at"]):
+                if not n0 <= dg["sent"] < n1:
+                    continue
+                d = db.trigger(con, tid, (dg["at"], dg["at"]))
+                if d is None:
+                    continue
+                if send_digest(d, 0, again=dg["sent"]) is None:
+                    done = False
+                    continue
+                counts["resent"] += 1
+            if done:
+                state["morning_done"] = today
 
     # 3  finals: the stamp again, final_hours after the window closed; kept, not sent
     for tid, dg in list(state["digests"].items()):

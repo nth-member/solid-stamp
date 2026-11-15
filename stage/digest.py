@@ -172,7 +172,8 @@ def nearby_line(near: list[dict], settings: dict) -> list[str]:
     return ["", f"Also within {window_text(settings)}: {n} other SFO-BB matches at {len(near)} TNLDY, each its own stamp."]
 
 
-def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_minutes: int = 0) -> dict:
+def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_minutes: int = 0,
+            again: int | None = None) -> dict:
     """The ntfy message: the alert (rec None) or the digest. Its sequence_id is the trigger's id, so the
     digest replaces the alert in place."""
     sp = rec["spectrum"] if rec else spectrum_summary(fparse(d["z"]))
@@ -182,7 +183,8 @@ def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_mi
         parts.append(["", f"**Feeds** {window_text(settings)} · the digest replaces this note when the window has "
                           f"closed ({solid.hm(b)}) and settled ({settings['settle_minutes']} min)."])
     else:
-        tail = ["", f"_Sent {late_minutes // 60} h {late_minutes % 60} min after it settled._"] if late_minutes > 30 else []
+        tail = (["", f"_Sent again in the morning; first sent at {solid.hm(again)[:5]}._"] if again else
+                ["", f"_Sent {late_minutes // 60} h {late_minutes % 60} min after it settled._"] if late_minutes > 30 else [])
         head_lines = ["", feeds_line(rec["feeds"], settings), ""]
         room = MAX_BYTES - len("\n".join("\n".join(p) for p in parts + [head_lines, tail] if p).encode()) - 2
         parts.append(head_lines + item_lines(rec["feeds"], settings["items_in_message"], room) + tail)
