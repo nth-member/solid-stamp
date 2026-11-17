@@ -3,7 +3,7 @@
 
 A SOLID STAMP is driven by a match to SFO-BBs, and by nothing else: a TNLDY Z at which, exactly,
 
-    REVOTT   Z = 14160 + 100·(Y + X)   Y and X each one of REVOTT's 401 SFO-BB keys (401 × 401 pairs)
+    REVOTT   Z = 14160 + 100·(Y + X)   Y and X each one of REVOTT's 539 SFO-BB keys (539 × 539 pairs)
     MDQNM    Z = Ztp + U·x             an engine coordinate c(Z) = (Z - Ztp)/U reaching SFO-BB key x
 
 Feeds, words, schedules and nearness never start a stamp or stop one; the feeds are only what the digest
@@ -58,7 +58,7 @@ CLASS_LABEL = {"revott+mdqnm": "REVOTT + MDQNM", "revott": "REVOTT", "mdqnm": "M
 
 @lru_cache(None)
 def keys() -> list[tuple[F, str, list]]:
-    """REVOTT's 401 SFO-BB keys as REVOTT STAMPS holds them: (x exactly as written, reading, apocalypse layers)."""
+    """REVOTT's 539 SFO-BB keys as REVOTT STAMPS holds them: (x exactly as written, reading, apocalypse layers)."""
     return [(F(Decimal(str(x))), r, layers) for x, r, layers in json.loads((STAMPS / "docs/data/keys.json").read_text())]
 
 

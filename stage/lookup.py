@@ -7,7 +7,7 @@
     python3 stage/lookup.py spectrum TNLDY            every MDQNM function at that TNLDY: on an SFO-BB or between two
     python3 stage/lookup.py key X [FROM TO]           when SFO-BB X is matched: REVOTT pairs with Y or X = X, and the
                                                       functions reaching X (FROM, TO: Nsukka dates; default the next year)
-    python3 stage/lookup.py function NAME|ID          a function's 401 instants, one per SFO-BB
+    python3 stage/lookup.py function NAME|ID          a function's 539 instants, one per SFO-BB
 """
 from __future__ import annotations
 
@@ -89,7 +89,7 @@ def main(argv: list[str]) -> int:
         x = fparse(args[0])
         j = solid.key_index().get(x)
         if j is None:
-            print(f"{args[0]} is not one of the 401 SFO-BB keys"); return 1
+            print(f"{args[0]} is not one of the 539 SFO-BB keys"); return 1
         lo = ms_of(args[1]) if len(args) > 1 else now
         hi = ms_of(args[2]) if len(args) > 2 else lo + 366 * 86400000
         for d in db.triggers(con, lo, hi):

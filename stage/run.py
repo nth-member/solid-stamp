@@ -257,7 +257,7 @@ def main() -> int:
             continue
         if window(d, settings)[1] + final > as_of:
             continue
-        log.put(d, final=digest.stamp(d, settings))
+        log.put(d, final=digest.stamp(d, settings)).setdefault("trigger", d)   # a record always names its trigger
         state["finals"][tid] = now
         counts["finals"] += 1
 

@@ -11,7 +11,7 @@ A match to SFO-BBs, and nothing else. A TNLDY Z stamps when, exactly:
 
 | | | |
 |---|---|---|
-| **REVOTT** | Z = 14160 + 100·(Y + X) | Y and X each one of REVOTT's 401 SFO-BB keys: every one of the 401 × 401 pairs |
+| **REVOTT** | Z = 14160 + 100·(Y + X) | Y and X each one of REVOTT's 540 SFO-BB keys: every one of the 540 × 540 pairs |
 | **MDQNM** | Z = Ztp + U·x | an engine function's coordinate, c(Z) = (Z − Ztp)/U, on SFO-BB key x |
 | **REVOTT + MDQNM** | both | a REVOTT instant that an engine function also reaches: there the TNLDY a function generates is constituted by a foreknown Y and X |
 
@@ -48,14 +48,14 @@ placements at a fixed Y. GOGID.100D, for example, is (22440, 100) = 14160 + 100�
 
 | | |
 |---|---|
-| SFO-BB keys | 401 (REVOTT's, with E-002: 85.32 *onset of circumcision*) |
-| REVOTT pairs | 160,801 = 401², at 66,872 distinct TNLDY |
-| MDQNM instants | 267,066 = 666 maps × 401 keys, at 226,230 distinct TNLDY |
-| triggers | 259,787 distinct TNLDY: 33,315 REVOTT + MDQNM, 33,557 REVOTT, 192,915 MDQNM |
-| outside the years 1–9999 | 5,136 (no instant) |
-| met twice by the clock | 148 |
+| SFO-BB keys | 540 (REVOTT's, with E-002: 85.32 *onset of circumcision*, and E-003: 139 restored positions) |
+| REVOTT pairs | 291,600 = 540², at 114,964 distinct TNLDY |
+| MDQNM instants | 359,640 = 666 maps × 540 keys, at 294,349 distinct TNLDY |
+| triggers | 356,460 distinct TNLDY: 52,853 REVOTT + MDQNM, 62,111 REVOTT, 241,496 MDQNM |
+| outside the years 1–9999 | 6,714 (no instant) |
+| met twice by the clock | 204 |
 
-Near now that is about ten triggers a day: in 30 days, 46 REVOTT + MDQNM, 25 REVOTT and 235 MDQNM.
+Near now that is about sixteen triggers a day: in 30 days, 76 REVOTT + MDQNM, 47 REVOTT and 350 MDQNM.
 
 The table is held in the SQLite database `data/solid.sqlite`. It is not committed, because it is rebuilt from its
 inputs in about 12 seconds. Its tables are:
@@ -242,7 +242,7 @@ python3 tests/github_sim.py         # the GitHub path against a night this compu
 
 `acceptance.py` checks the following:
 
-- the 401 keys against REVOTT's own;
+- the 540 keys against REVOTT's own;
 - the counts, and a fresh recomputation against the stored table's SHA-256;
 - exact retrieval of 2,000 random pairs and 2,000 random hits;
 - no false trigger: random instants, and every trigger of 30 days moved by 1 ms, against brute force;

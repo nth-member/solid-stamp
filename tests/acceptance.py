@@ -54,10 +54,10 @@ ks = solid.key_values()
 rng = random.Random(20261111)
 
 
-@check("401 SFO-BBs: distinct, ascending, the same values as REVOTT's own keys, 85.32 among them")
+@check("539 SFO-BBs: distinct, ascending, the same values as REVOTT's own keys, 85.32, -19.60 and 24.31 among them, 241.20 blotted out")
 def _():
-    assert len(ks) == 401, len(ks)
-    assert len(set(ks)) == 401
+    assert len(ks) == 539, len(ks)
+    assert len(set(ks)) == 539
     assert all(a < b for a, b in zip(ks, ks[1:])), "not ascending"
     src = json.loads((path("revott_stamps").parent / "revott" / "data" / "keys.json").read_text()) \
         if (Path.home() / "revott" / "data" / "keys.json").exists() else None
@@ -66,6 +66,8 @@ def _():
         vals = {F(Decimal(str(k["x"] if isinstance(k, dict) else k[0]))) for k in (raw.values() if isinstance(raw, dict) else raw)}
         assert vals == set(ks), f"REVOTT's keys.json differs: {len(vals ^ set(ks))} values"
     assert F(Decimal("85.32")) in set(ks)
+    assert F(Decimal("-19.60")) in set(ks) and F(Decimal("24.31")) in set(ks)
+    assert F(Decimal("241.20")) not in set(ks)
     return f"{len(ks)} keys, {fstr(ks[0])} .. {fstr(ks[-1])}"
 
 
@@ -81,12 +83,12 @@ def _():
     return f"{len(fs['maps'])} distinct maps from {sum(fs['coordinates'].values())} coordinates; excluded {fs['excluded_counts']}"
 
 
-@check("the precomputation is exhaustive: 401 × 401 pairs and every map at every key, counts as the manifest says")
+@check("the precomputation is exhaustive: 539 × 539 pairs and every map at every key, counts as the manifest says")
 def _():
     man = json.loads((ROOT / "docs/data/manifest.json").read_text())
     n = man["counts"]
-    assert n["pairs"] == 401 * 401 == con.execute("SELECT COUNT(*) FROM pairs").fetchone()[0]
-    assert n["hits"] == len(solid.maps()) * 401 == con.execute("SELECT COUNT(*) FROM hits").fetchone()[0]
+    assert n["pairs"] == 539 * 539 == con.execute("SELECT COUNT(*) FROM pairs").fetchone()[0]
+    assert n["hits"] == len(solid.maps()) * 539 == con.execute("SELECT COUNT(*) FROM hits").fetchone()[0]
     assert n["instants"] == con.execute("SELECT COUNT(*) FROM instants").fetchone()[0]
     assert sum(n["by_class"].values()) == n["instants"]
     assert n["revott_instants"] + n["mdqnm_instants"] - n["by_class"]["revott+mdqnm"] == n["instants"]
@@ -105,14 +107,14 @@ def _():
 @check("stored combinations are retrieved exactly: 2,000 random pairs and 2,000 random (map, key) hits")
 def _():
     for _ in range(2000):
-        i, j = rng.randrange(401), rng.randrange(401)
+        i, j = rng.randrange(len(ks)), rng.randrange(len(ks))
         z = fstr(solid.ZTP + solid.U * (ks[i] + ks[j]))
         got = con.execute("SELECT z FROM pairs WHERE y = ? AND x = ?", (i, j)).fetchone()[0]
         assert got == z, (i, j, got, z)
         assert (i, j) in db.row(con, z)[0]
     ms = solid.maps()
     for _ in range(2000):
-        k, j = rng.randrange(len(ms)), rng.randrange(401)
+        k, j = rng.randrange(len(ms)), rng.randrange(len(ks))
         z = fstr(ms[k][0] + ms[k][1] * ks[j])
         got = con.execute("SELECT z FROM hits WHERE k = ? AND x = ?", (k, j)).fetchone()[0]
         assert got == z, (k, j, got, z)
@@ -232,9 +234,16 @@ def _():
         sys.argv = ["run.py"]
         run.main()
         first = len(sent)
+        assert 0 < first <= run.SEND_LIMIT, f"the first run sent {first}"
+        for _ in range(5):                                 # runs drain the horizon SEND_LIMIT messages at a time
+            before = len(sent)
+            run.main()
+            assert len(sent) - before <= run.SEND_LIMIT, "a run sent more than SEND_LIMIT"
+            if len(sent) == before:
+                break
+        first = len(sent)
         run.main()
         second = len(sent) - first
-        assert first > 0, "the first run scheduled nothing"
         assert second == 0, f"the second run sent {second} again"
         ids = [s for s, _ in sent]
         assert len(ids) == len(set(ids)), "one trigger scheduled twice"
@@ -283,8 +292,15 @@ def _():
         assert run.parse_time(f"{today}T{mr['night_until']}") > first
         run.STATE.write_text(json.dumps({"since": seven - 5 * 60000, "alerts": {}, "finals": {},
                                          "digests": {d["id"]: {"at": d["instants"][0], "sent": first, "ntfy": "night"}}}))
-        run.time.time = lambda: seven / 1000
         sys.argv = ["run.py"]
+        run.time.time = lambda: (seven - 15 * 60000) / 1000          # 06:55: the alerts already on the server, as live
+        for _ in range(5):                                             # (drained SEND_LIMIT at a time)
+            b = len(sent)
+            run.main()
+            if len(sent) == b:
+                break
+        sent.clear()
+        run.time.time = lambda: seven / 1000
         run.main()
         again = [x for x in sent if x[0] == d["id"] and x[1] is None]
         assert len(again) == 1, f"sent again {len(again)} times"
