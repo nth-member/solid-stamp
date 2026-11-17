@@ -54,10 +54,10 @@ ks = solid.key_values()
 rng = random.Random(20261111)
 
 
-@check("539 SFO-BBs: distinct, ascending, the same values as REVOTT's own keys, 85.32, -19.60 and 24.31 among them, 241.20 blotted out")
+@check("550 SFO-BBs: distinct, ascending, the same values as REVOTT's own keys, 85.32, -19.60, 24.31 and the evens 42.118 .. 81.718 among them, 60.118 beside 60.12, 241.20 blotted out")
 def _():
-    assert len(ks) == 539, len(ks)
-    assert len(set(ks)) == 539
+    assert len(ks) == 550, len(ks)
+    assert len(set(ks)) == 550
     assert all(a < b for a, b in zip(ks, ks[1:])), "not ascending"
     src = json.loads((path("revott_stamps").parent / "revott" / "data" / "keys.json").read_text()) \
         if (Path.home() / "revott" / "data" / "keys.json").exists() else None
@@ -67,6 +67,9 @@ def _():
         assert vals == set(ks), f"REVOTT's keys.json differs: {len(vals ^ set(ks))} values"
     assert F(Decimal("85.32")) in set(ks)
     assert F(Decimal("-19.60")) in set(ks) and F(Decimal("24.31")) in set(ks)
+    assert all(F(Decimal(e)) in set(ks) for e in ("42.118", "45.718", "49.318", "56.518", "60.118", "63.718", "67.318",
+                                                   "70.918", "74.518", "78.118", "81.718")), "E-004 evens"
+    assert F(Decimal("60.12")) in set(ks)
     assert F(Decimal("241.20")) not in set(ks)
     return f"{len(ks)} keys, {fstr(ks[0])} .. {fstr(ks[-1])}"
 
@@ -83,12 +86,12 @@ def _():
     return f"{len(fs['maps'])} distinct maps from {sum(fs['coordinates'].values())} coordinates; excluded {fs['excluded_counts']}"
 
 
-@check("the precomputation is exhaustive: 539 × 539 pairs and every map at every key, counts as the manifest says")
+@check("the precomputation is exhaustive: 550 × 550 pairs and every map at every key, counts as the manifest says")
 def _():
     man = json.loads((ROOT / "docs/data/manifest.json").read_text())
     n = man["counts"]
-    assert n["pairs"] == 539 * 539 == con.execute("SELECT COUNT(*) FROM pairs").fetchone()[0]
-    assert n["hits"] == len(solid.maps()) * 539 == con.execute("SELECT COUNT(*) FROM hits").fetchone()[0]
+    assert n["pairs"] == 550 * 550 == con.execute("SELECT COUNT(*) FROM pairs").fetchone()[0]
+    assert n["hits"] == len(solid.maps()) * 550 == con.execute("SELECT COUNT(*) FROM hits").fetchone()[0]
     assert n["instants"] == con.execute("SELECT COUNT(*) FROM instants").fetchone()[0]
     assert sum(n["by_class"].values()) == n["instants"]
     assert n["revott_instants"] + n["mdqnm_instants"] - n["by_class"]["revott+mdqnm"] == n["instants"]

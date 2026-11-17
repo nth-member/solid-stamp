@@ -4,14 +4,14 @@
     python3 build/table.py            build when an input changed (or the database is missing)
     python3 build/table.py --force    build regardless
 
-The inputs are REVOTT's 539 keys (REVOTT STAMPS' docs/data/keys.json) and the engine's maps
-(docs/data/functions.json, from build/engine.py). Every one of the 539 × 539 pairs (Y, X) is evaluated,
-and every map at every one of the 539 keys -- no sampling. The database holds:
+The inputs are REVOTT's 550 keys (REVOTT STAMPS' docs/data/keys.json) and the engine's maps
+(docs/data/functions.json, from build/engine.py). Every one of the 550 × 550 pairs (Y, X) is evaluated,
+and every map at every one of the 550 keys -- no sampling. The database holds:
 
-    keys       the 539 SFO-BB keys: index, x (exact), reading, apocalypse layers
+    keys       the 550 SFO-BB keys: index, x (exact), reading, apocalypse layers
     maps       the engine's maps: index, id, name, Ztp, U (exact), where the engine first writes it
-    pairs      REVOTT: Y index, X index -> Z                  (539 × 539 rows)
-    hits       MDQNM: map index, key index -> Z               (maps × 539 rows)
+    pairs      REVOTT: Y index, X index -> Z                  (550 × 550 rows)
+    hits       MDQNM: map index, key index -> Z               (maps × 550 rows)
     instants   each distinct Z once: exact, to 6 decimals, as a float (for range search), its instant(s) on
                the Nsukka/Yg clock, its class (revott+mdqnm, revott, mdqnm) and its numbers of pairs and hits
     meta       the inputs' SHA-256, the counts, and the SHA-256 of the canonical table

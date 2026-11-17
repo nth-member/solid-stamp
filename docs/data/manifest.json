@@ -1,23 +1,23 @@
 {
  "inputs": {
-  "keys.json": "39a0b2edb949dbdf5bebfe8d6ccc36ecd13e2741bc5621fca54a4fc2c13b2d2f",
+  "keys.json": "6c5db03542dd512b148804c36d64808c19cc7203315760abfca2ee4d93bc2430",
   "functions.json": "7997176c6fa85e3952b4979cfa49c9abfcae36707ae5b32eaa538bff7a45e712"
  },
  "counts": {
-  "keys": 539,
+  "keys": 550,
   "maps": 666,
-  "pairs": 290521,
-  "hits": 358974,
-  "instants": 355557,
+  "pairs": 302500,
+  "hits": 366300,
+  "instants": 362633,
   "by_class": {
-   "mdqnm": 241094,
-   "revott": 61765,
-   "revott+mdqnm": 52698
+   "mdqnm": 244424,
+   "revott": 63897,
+   "revott+mdqnm": 54312
   },
-  "revott_instants": 114463,
-  "mdqnm_instants": 293792,
-  "outside_calendar": 6697,
-  "met_twice": 203
+  "revott_instants": 118209,
+  "mdqnm_instants": 298736,
+  "outside_calendar": 6755,
+  "met_twice": 204
  },
- "table_sha256": "98ba1149f5d4e66427639b88e9d9827fcbbe7625a696c37d763efb0bb28ec7b6"
+ "table_sha256": "0ff75f66d4f74c8884c24019639a3f8209753f67e4b990d2533ef2b6c34bf71e"
 }

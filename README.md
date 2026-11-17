@@ -11,7 +11,7 @@ A match to SFO-BBs, and nothing else. A TNLDY Z stamps when, exactly:
 
 | | | |
 |---|---|---|
-| **REVOTT** | Z = 14160 + 100·(Y + X) | Y and X each one of REVOTT's 540 SFO-BB keys: every one of the 540 × 540 pairs |
+| **REVOTT** | Z = 14160 + 100·(Y + X) | Y and X each one of REVOTT's 550 SFO-BB keys: every one of the 550 × 550 pairs |
 | **MDQNM** | Z = Ztp + U·x | an engine function's coordinate, c(Z) = (Z − Ztp)/U, on SFO-BB key x |
 | **REVOTT + MDQNM** | both | a REVOTT instant that an engine function also reaches: there the TNLDY a function generates is constituted by a foreknown Y and X |
 
@@ -48,14 +48,14 @@ placements at a fixed Y. GOGID.100D, for example, is (22440, 100) = 14160 + 100�
 
 | | |
 |---|---|
-| SFO-BB keys | 540 (REVOTT's, with E-002: 85.32 *onset of circumcision*, and E-003: 139 restored positions) |
-| REVOTT pairs | 291,600 = 540², at 114,964 distinct TNLDY |
-| MDQNM instants | 359,640 = 666 maps × 540 keys, at 294,349 distinct TNLDY |
-| triggers | 356,460 distinct TNLDY: 52,853 REVOTT + MDQNM, 62,111 REVOTT, 241,496 MDQNM |
-| outside the years 1–9999 | 6,714 (no instant) |
+| SFO-BB keys | 550 (REVOTT's, with E-002: 85.32 *onset of circumcision*, E-003: 138 restored positions, and E-004: 11 evens under THE FEAST OF TABERNACLES) |
+| REVOTT pairs | 302,500 = 550², at 118,209 distinct TNLDY |
+| MDQNM instants | 366,300 = 666 maps × 550 keys, at 298,736 distinct TNLDY |
+| triggers | 362,633 distinct TNLDY: 54,312 REVOTT + MDQNM, 63,897 REVOTT, 244,424 MDQNM |
+| outside the years 1–9999 | 6,755 (no instant) |
 | met twice by the clock | 204 |
 
-Near now that is about sixteen triggers a day: in 30 days, 76 REVOTT + MDQNM, 47 REVOTT and 350 MDQNM.
+Near now that is about sixteen triggers a day: in 30 days, 81 REVOTT + MDQNM, 57 REVOTT and 352 MDQNM.
 
 The table is held in the SQLite database `data/solid.sqlite`. It is not committed, because it is rebuilt from its
 inputs in about 12 seconds. Its tables are:
@@ -242,7 +242,7 @@ python3 tests/github_sim.py         # the GitHub path against a night this compu
 
 `acceptance.py` checks the following:
 
-- the 540 keys against REVOTT's own;
+- the 550 keys against REVOTT's own;
 - the counts, and a fresh recomputation against the stored table's SHA-256;
 - exact retrieval of 2,000 random pairs and 2,000 random hits;
 - no false trigger: random instants, and every trigger of 30 days moved by 1 ms, against brute force;
