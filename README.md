@@ -124,6 +124,14 @@ Each trigger gets one notification, under its id as sequence ID:
    to its article (tappable in the ntfy app; in the drawer the notification itself opens the page). The rest are
    on the page.
 
+**Within Firebase's limit.** ntfy.sh hands every message to Firebase, which cuts one over 4,000 bytes (as its JSON
+counts them) short and marks it cut. The phone's app, with instant delivery on, discards a cut copy and waits for
+the whole one over its own connection. On 2026-11-18 the 16:58:57 digest, about 4,900 bytes as Firebase took it,
+never reached the phone, while every smaller one did. So every message is held to 3,500 bytes as Firebase counts
+it (`digest.fcm_size`, `FCM_LIMIT`), with fewer headlines when needed: every item is on the digest page. The
+notification's one button opens the digest page. REVOTT STAMPS' live stamp, a link of about 600 bytes, is linked
+from that page.
+
 **Digests at priority 4.** ntfy.sh hands a message of priority 4 or 5 to Google's Firebase as urgent ("high"),
 which reaches a phone even in deep sleep; one of priority 3 goes as normal, which Android may hold back for
 hours. So every digest goes out at priority 4 or more (`digest_min_priority`), whatever its class. If the alert

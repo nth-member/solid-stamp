@@ -17,6 +17,8 @@ import solid
 from exact import fmt, fparse
 
 MAX_BYTES = 4000           # ntfy keeps a message of up to 4,096 bytes as a message, not an attachment
+FCM_LIMIT = 3500           # ntfy.sh hands each message to Firebase, which cuts one over 4,000 bytes (its JSON) short;
+                           # the phone's app, with instant delivery on, discards the cut copy -- so stay well under
 
 
 def md(text: str) -> str:
@@ -156,13 +158,25 @@ def title(d: dict) -> str:
 
 
 def links(d: dict, settings: dict) -> tuple[str | None, list[dict]]:
+    """The tap opens the digest page; REVOTT STAMPS' live stamp is linked from there. Without a page, the tap
+    and a button open REVOTT STAMPS instead. (Its link is about 600 bytes: on the page, not in the message.)"""
     page, live = solid.page_link(d, settings), solid.stamps_link(d, settings)
-    actions = []
     if page:
-        actions.append({"action": "view", "label": "Digest", "url": page})
-    if live:
-        actions.append({"action": "view", "label": "Stamp now", "url": live})
-    return page or live, actions
+        return page, [{"action": "view", "label": "Digest", "url": page}]
+    return live, ([{"action": "view", "label": "Stamp now", "url": live}] if live else [])
+
+
+def fcm_size(msg: dict, topic_len: int = 40) -> int:
+    """The size of the message as ntfy.sh hands it to Firebase (server_firebase.go: the data map of strings, the
+    actions as a JSON string, Go's escaping of < > &), with room for a topic of topic_len characters."""
+    data = {"id": "x" * 12, "time": "1800000000", "event": "message", "topic": "t" * topic_len,
+            "priority": str(msg.get("priority", 3)), "tags": ",".join(msg.get("tags", [])), "click": msg.get("click", ""),
+            "title": msg.get("title", ""), "message": msg.get("message", ""), "content_type": "text/markdown",
+            "encoding": "", "sequence_id": msg.get("sequence_id", "")}
+    if msg.get("actions"):
+        data["actions"] = json.dumps([{"id": "x" * 10, **a, "clear": False} for a in msg["actions"]])
+    s = json.dumps({"topic": "t" * topic_len, "data": data, "android": {"priority": "high"}}, ensure_ascii=False)
+    return len(s.encode()) + 5 * sum(s.count(c) for c in "<>&")
 
 
 def nearby_line(near: list[dict], settings: dict) -> list[str]:
@@ -175,7 +189,28 @@ def nearby_line(near: list[dict], settings: dict) -> list[str]:
 def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_minutes: int = 0,
             again: int | None = None) -> dict:
     """The ntfy message: the alert (rec None) or the digest. Its sequence_id is the trigger's id, so the
-    digest replaces the alert in place."""
+    digest replaces the alert in place. Built within MAX_BYTES, then narrowed until Firebase's copy fits
+    FCM_LIMIT: fewer headlines (every item stays on the digest page)."""
+    click, actions = links(d, settings)
+    prio = settings["priority"][d["class"]]
+    if rec is not None:              # a digest: at least digest_min_priority, so Firebase carries it as urgent
+        prio = max(prio, settings.get("digest_min_priority", 0))
+    limit = MAX_BYTES
+    while True:
+        msg = {"title": title(d), "message": message(d, settings, rec, near, late_minutes, again, limit), "markdown": True,
+               "priority": prio, "tags": [d["class"].replace("+", "-")], "sequence_id": d["id"]}
+        if click:
+            msg["click"] = click
+        if actions:
+            msg["actions"] = actions
+        over = fcm_size(msg) - FCM_LIMIT
+        if over <= 0 or limit < 800:
+            return msg
+        limit -= over + 40
+
+
+def message(d: dict, settings: dict, rec: dict | None, near: list[dict], late_minutes: int, again: int | None,
+            limit: int) -> str:
     sp = rec["spectrum"] if rec else spectrum_summary(fparse(d["z"]))
     parts = [[head(d), ""], matched(d, 12), ["", spectrum_line(sp)] + nearby_line(near, settings)]
     if rec is None:
@@ -186,19 +221,9 @@ def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_mi
         tail = (["", f"_Sent again in the morning; first sent at {solid.hm(again)[:5]}._"] if again else
                 ["", f"_Sent {late_minutes // 60} h {late_minutes % 60} min after it settled._"] if late_minutes > 30 else [])
         head_lines = ["", feeds_line(rec["feeds"], settings), ""]
-        room = MAX_BYTES - len("\n".join("\n".join(p) for p in parts + [head_lines, tail] if p).encode()) - 2
+        room = limit - len("\n".join("\n".join(p) for p in parts + [head_lines, tail] if p).encode()) - 2
         parts.append(head_lines + item_lines(rec["feeds"], settings["items_in_message"], room) + tail)
-    click, actions = links(d, settings)
-    prio = settings["priority"][d["class"]]
-    if rec is not None:              # a digest: at least digest_min_priority, so Firebase carries it as urgent
-        prio = max(prio, settings.get("digest_min_priority", 0))
-    msg = {"title": title(d), "message": fit(parts), "markdown": True, "priority": prio,
-           "tags": [d["class"].replace("+", "-")], "sequence_id": d["id"]}
-    if click:
-        msg["click"] = click
-    if actions:
-        msg["actions"] = actions
-    return msg
+    return fit(parts, limit)
 
 
 def payload_hash(p: dict) -> str:
