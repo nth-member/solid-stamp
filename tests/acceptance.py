@@ -185,7 +185,7 @@ def _():
     return d["id"]
 
 
-@check("every message fits ntfy's 4,096 bytes and, as Firebase receives it, 3,500; every digest at digest_min_priority+")
+@check("every message fits ntfy's 4,096 bytes and, as Firebase receives it, FCM_LIMIT; every digest at digest_min_priority+")
 def _():
     now = int(time.time() * 1000)
     big = 0

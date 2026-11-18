@@ -127,8 +127,8 @@ Each trigger gets one notification, under its id as sequence ID:
 **Within Firebase's limit.** ntfy.sh hands every message to Firebase, which cuts one over 4,000 bytes (as its JSON
 counts them) short and marks it cut. The phone's app, with instant delivery on, discards a cut copy and waits for
 the whole one over its own connection. On 2026-11-18 the 16:58:57 digest, about 4,900 bytes as Firebase took it,
-never reached the phone, while every smaller one did. So every message is held to 3,500 bytes as Firebase counts
-it (`digest.fcm_size`, `FCM_LIMIT`), with fewer headlines when needed: every item is on the digest page. The
+never reached the phone, while every smaller one did. So every message is held to 3,900 bytes as Firebase counts
+it (`digest.fcm_size`, `FCM_LIMIT`; the author's figure, under Firebase's 4,096), with fewer headlines when needed: every item is on the digest page. The
 notification's one button opens the digest page. REVOTT STAMPS' live stamp, a link of about 600 bytes, is linked
 from that page.
 

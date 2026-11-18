@@ -17,8 +17,8 @@ import solid
 from exact import fmt, fparse
 
 MAX_BYTES = 4000           # ntfy keeps a message of up to 4,096 bytes as a message, not an attachment
-FCM_LIMIT = 3500           # ntfy.sh hands each message to Firebase, which cuts one over 4,000 bytes (its JSON) short;
-                           # the phone's app, with instant delivery on, discards the cut copy -- so stay well under
+FCM_LIMIT = 3900           # ntfy.sh hands each message to Firebase, whose limit is 4,096 bytes; one over it never
+                           # reached the phone (2026-11-18), every one up to ~3,950 did. The author set 3,900.
 
 
 def md(text: str) -> str:

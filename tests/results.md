@@ -1,6 +1,6 @@
 # SOLID STAMP — acceptance checks
 
-Run 2026-11-18 20:13 Nsukka · table 0ff75f66d4f74c88 · 14/14 pass
+Run 2026-11-18 20:35 Nsukka · table 0ff75f66d4f74c88 · 14/14 pass
 
 | check | result | note |
 |---|---|---|
@@ -13,8 +13,8 @@ Run 2026-11-18 20:13 Nsukka · table 0ff75f66d4f74c88 · 14/14 pass
 | every live trigger is an exact match: the next 30 days, each pair and hit recomputed from the keys | PASS | 485 triggers in 30 days: {'revott+mdqnm': 77, 'revott': 56, 'mdqnm': 352} |
 | the spectrum's 'on' entries are exactly the trigger's matched functions (200 triggers) | PASS |  |
 | the driver is the match alone: a trigger whose window holds no item is still alerted and digested | PASS | ssd785475d6c34d0 |
-| every message fits ntfy's 4,096 bytes and, as Firebase receives it, 3,500; every digest at digest_min_priority+ | PASS | largest 2737 bytes |
-| every stamped item lies within ±100·ε TNLDY of its trigger, on the reconciled clock | PASS | 1071 items checked |
+| every message fits ntfy's 4,096 bytes and, as Firebase receives it, FCM_LIMIT; every digest at digest_min_priority+ | PASS | largest 3084 bytes |
+| every stamped item lies within ±100·ε TNLDY of its trigger, on the reconciled clock | PASS | 1073 items checked |
 | duplicates: a second run with nothing new sends nothing; a changed message replaces by the same sequence ID | PASS | first run 46 scheduled, second run 0, a changed one re-sent under its own sequence ID |
 | the morning re-send: a digest first sent in the night is sent again once, from 07:00, under its sequence ID | PASS | the digest of 20828.415930 sent again once at 07:10, not again after |
 | REVOTT STAMPS links open the same TNLDY: Y + X of the link's request gives the trigger's Z exactly | PASS | 136 links checked |
