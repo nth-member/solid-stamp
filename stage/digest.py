@@ -158,12 +158,15 @@ def title(d: dict) -> str:
 
 
 def links(d: dict, settings: dict) -> tuple[str | None, list[dict]]:
-    """The tap opens the digest page; REVOTT STAMPS' live stamp is linked from there. Without a page, the tap
-    and a button open REVOTT STAMPS instead. (Its link is about 600 bytes: on the page, not in the message.)"""
+    """The tap opens the digest page; the buttons open it (Digest) and REVOTT STAMPS' live stamp at the same
+    TNLDY (Stamp now). Without a page, the tap opens REVOTT STAMPS."""
     page, live = solid.page_link(d, settings), solid.stamps_link(d, settings)
+    actions = []
     if page:
-        return page, [{"action": "view", "label": "Digest", "url": page}]
-    return live, ([{"action": "view", "label": "Stamp now", "url": live}] if live else [])
+        actions.append({"action": "view", "label": "Digest", "url": page})
+    if live:
+        actions.append({"action": "view", "label": "Stamp now", "url": live})
+    return page or live, actions
 
 
 def fcm_size(msg: dict, topic_len: int = 40) -> int:

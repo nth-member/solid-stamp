@@ -128,7 +128,8 @@ Each trigger gets one notification, under its id as sequence ID:
 20:14 to 20:56 on 2026-11-18 messages were held under a cap (3,500, then 3,900) after the 16:58:57 digest, about
 4,900 bytes as Firebase counts them, failed to reach the phone. The author then removed the cap: a digest of about
 5,130 bytes had reached the phone on 17 Nov, so size alone does not decide delivery. `digest.fcm_size` still
-measures, and `FCM_LIMIT` can set a cap again. Messages stay within ntfy's own 4,096 bytes; a longer one would
+measures, and `FCM_LIMIT` can set a cap again. The notification's two buttons are back: **Digest** (this page) and
+**Stamp now** (REVOTT STAMPS' live stamp at the same TNLDY). Messages stay within ntfy's own 4,096 bytes; a longer one would
 become an attachment.
 
 **Digests at priority 4.** ntfy.sh hands a message of priority 4 or 5 to Google's Firebase as urgent ("high"),
