@@ -17,8 +17,8 @@ import solid
 from exact import fmt, fparse
 
 MAX_BYTES = 4000           # ntfy keeps a message of up to 4,096 bytes as a message, not an attachment
-FCM_LIMIT = 3900           # ntfy.sh hands each message to Firebase, whose limit is 4,096 bytes; one over it never
-                           # reached the phone (2026-11-18), every one up to ~3,950 did. The author set 3,900.
+FCM_LIMIT = None           # no cap on the size Firebase receives: removed by the author on 2026-11-18, after a digest
+                           # of ~5,130 bytes as Firebase counts them reached the phone (17 Nov). fcm_size still measures.
 
 
 def md(text: str) -> str:
@@ -189,8 +189,8 @@ def nearby_line(near: list[dict], settings: dict) -> list[str]:
 def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_minutes: int = 0,
             again: int | None = None) -> dict:
     """The ntfy message: the alert (rec None) or the digest. Its sequence_id is the trigger's id, so the
-    digest replaces the alert in place. Built within MAX_BYTES, then narrowed until Firebase's copy fits
-    FCM_LIMIT: fewer headlines (every item stays on the digest page)."""
+    digest replaces the alert in place. Built within MAX_BYTES (ntfy's own: a longer message becomes an
+    attachment); if FCM_LIMIT is set, narrowed until Firebase's copy fits it, with fewer headlines."""
     click, actions = links(d, settings)
     prio = settings["priority"][d["class"]]
     if rec is not None:              # a digest: at least digest_min_priority, so Firebase carries it as urgent
@@ -203,6 +203,8 @@ def payload(d: dict, settings: dict, rec: dict | None, near: list[dict], late_mi
             msg["click"] = click
         if actions:
             msg["actions"] = actions
+        if FCM_LIMIT is None:
+            return msg
         over = fcm_size(msg) - FCM_LIMIT
         if over <= 0 or limit < 800:
             return msg

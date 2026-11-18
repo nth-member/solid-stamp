@@ -124,13 +124,12 @@ Each trigger gets one notification, under its id as sequence ID:
    to its article (tappable in the ntfy app; in the drawer the notification itself opens the page). The rest are
    on the page.
 
-**Within Firebase's limit.** ntfy.sh hands every message to Firebase, which cuts one over 4,000 bytes (as its JSON
-counts them) short and marks it cut. The phone's app, with instant delivery on, discards a cut copy and waits for
-the whole one over its own connection. On 2026-11-18 the 16:58:57 digest, about 4,900 bytes as Firebase took it,
-never reached the phone, while every smaller one did. So every message is held to 3,900 bytes as Firebase counts
-it (`digest.fcm_size`, `FCM_LIMIT`; the author's figure, under Firebase's 4,096), with fewer headlines when needed: every item is on the digest page. The
-notification's one button opens the digest page. REVOTT STAMPS' live stamp, a link of about 600 bytes, is linked
-from that page.
+**No cap for Firebase.** ntfy.sh also hands each message to Google's Firebase, whose limit is 4,096 bytes. From
+20:14 to 20:56 on 2026-11-18 messages were held under a cap (3,500, then 3,900) after the 16:58:57 digest, about
+4,900 bytes as Firebase counts them, failed to reach the phone. The author then removed the cap: a digest of about
+5,130 bytes had reached the phone on 17 Nov, so size alone does not decide delivery. `digest.fcm_size` still
+measures, and `FCM_LIMIT` can set a cap again. Messages stay within ntfy's own 4,096 bytes; a longer one would
+become an attachment.
 
 **Digests at priority 4.** ntfy.sh hands a message of priority 4 or 5 to Google's Firebase as urgent ("high"),
 which reaches a phone even in deep sleep; one of priority 3 goes as normal, which Android may hold back for

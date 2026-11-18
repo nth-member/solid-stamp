@@ -185,14 +185,14 @@ def _():
     return d["id"]
 
 
-@check("every message fits ntfy's 4,096 bytes and, as Firebase receives it, FCM_LIMIT; every digest at digest_min_priority+")
+@check("every message fits ntfy's 4,096 bytes (and FCM_LIMIT, if set); every digest at digest_min_priority or more")
 def _():
     now = int(time.time() * 1000)
     big = 0
     for d in db.triggers(con, now, now + 30 * 86400000):
         al = digest.payload(d, SETTINGS, None, db.nearby(con, fparse(d["z"]), F(SETTINGS["eps"]) * solid.U))
         n = len(al["message"].encode())
-        assert n <= 4096 and digest.fcm_size(al) <= digest.FCM_LIMIT, (d["id"], n, digest.fcm_size(al))
+        assert n <= 4096 and (digest.FCM_LIMIT is None or digest.fcm_size(al) <= digest.FCM_LIMIT), (d["id"], n)
         big = max(big, n)
     for d in db.triggers(con, now - 3 * 86400000, now - 6 * 3600000):
         near = db.nearby(con, fparse(d["z"]), F(SETTINGS["eps"]) * solid.U)
@@ -200,7 +200,7 @@ def _():
         n = len(dg["message"].encode())
         assert n <= 4096, (d["id"], n)
         assert dg["priority"] >= SETTINGS.get("digest_min_priority", 0), (d["id"], dg["priority"])
-        assert digest.fcm_size(dg) <= digest.FCM_LIMIT, (d["id"], digest.fcm_size(dg))
+        assert digest.FCM_LIMIT is None or digest.fcm_size(dg) <= digest.FCM_LIMIT, (d["id"], digest.fcm_size(dg))
         big = max(big, n)
     return f"largest {big} bytes"
 
