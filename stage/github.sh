@@ -3,7 +3,7 @@
 # computer is on:
 #
 #   1  the last days of REVOTT STAMPS' published archive and of JOMO SFO-WAM's GitHub readings
-#      (sparse checkouts under .work/, filled in here)
+#      (sparse checkouts under .work/, filled in here), and the member's geopolitical filter
 #   2  stage/recent.py   the archive brought up to the latest reading
 #   3  stage/run.py      the table (built here), alerts scheduled, digests sent, finals kept, the record
 #   4  commit docs/log, the run's files in docs/data, and state/ -- one rolling commit per Nsukka day -- and
@@ -22,7 +22,7 @@ print(" ".join("/feeds/history/%s.jsonl.gz" % (now - dt.timedelta(days=k)).date(
 EOF
 git -C "$W/revott-stamps" sparse-checkout add $(sed -n 1p "$W/want") || { echo "FAIL the archive's days"; exit 1; }
 git -C "$W/jomo-sfo-wam" sparse-checkout add $(sed -n 2p "$W/want") || { echo "FAIL the feed readings"; exit 1; }
-printf '{"revott_stamps": "%s", "jomo": "%s", "engine": ""}\n' "$PWD/$W/revott-stamps" "$PWD/$W/jomo-sfo-wam" > .paths.json
+printf '{"revott_stamps": "%s", "jomo": "%s", "member": "%s", "engine": ""}\n' "$PWD/$W/revott-stamps" "$PWD/$W/jomo-sfo-wam" "$PWD/$W/member" > .paths.json
 if [ -n "${NTFY_TOPIC:-}" ]; then
   printf '{"server": "%s", "topic": "%s"}\n' "${NTFY_SERVER:-https://ntfy.sh}" "$NTFY_TOPIC" > .ntfy.json
   chmod 600 .ntfy.json

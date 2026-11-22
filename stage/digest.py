@@ -11,10 +11,18 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 from fractions import Fraction as F
 
 import solid
 from exact import fmt, fparse
+from paths import path
+
+# The member's geopolitical filter (nth-member/member, filter/): each headline is read for its class; the
+# passing ones lead the digest, each tagged. Read with the member's own settings (member.json "filter").
+sys.path.insert(0, str(path("member") / "filter"))
+import geofilter  # noqa: E402
+GEO = geofilter.load()
 
 MAX_BYTES = 4000           # ntfy keeps a message of up to 4,096 bytes as a message, not an attachment
 FCM_LIMIT = None           # no cap on the size Firebase receives: removed by the author on 2026-11-18, after a digest
@@ -49,15 +57,26 @@ def window_text(settings: dict) -> str:
 def stamp(d: dict, settings: dict) -> dict:
     """REVOTT STAMPS' stamp of the chosen feeds about Z, window ±100·ε TNLDY, on its reconciled clock. Each item
     is [seconds from Z, instant ms, how its time was read (p page, f feed, d day only, s first seen), source,
-    headline, link, note, source's name]."""
+    headline, link, note, source's name, geopolitical class]: the class, with its MID hostility level for war
+    and disputes, if the headline passes the member's filter, else ""."""
     s = solid.stamps.stamp_z(fparse(d["z"]), F(settings["eps"]), settings["clock"], set(settings["domains"]), solid.U)
     cov = s.get("coverage", {"covered": [], "partly": [], "null": []})
     srcs = solid.stamps.data("sources.json")
-    items = [it + [srcs.get(it[3], [it[3]])[0]] for it in s.get("items", [])]   # + the source's name
+    items = [it + [srcs.get(it[3], [it[3]])[0], geo_tag(it[4])] for it in s.get("items", [])]   # + name, class
     return {"eps": settings["eps"], "clock": settings["clock"], "domains": sorted(settings["domains"]),
             "as_of": solid.stamps.data("index.json")["as_of"], "status": s["status"], "window": s["window"],
             "items": items, "covered": len(cov["covered"]), "partly": cov["partly"], "null": cov["null"],
             "gdelt": s.get("gdelt")}
+
+
+def geo_tag(headline: str) -> str:
+    r = GEO.read(headline)
+    return (r["class"] + ("" if r["h"] is None else f" {r['h']}")) if r["pass"] else ""
+
+
+def geo_first(items: list) -> list:
+    """The items that pass the filter first, then the rest, each group in time order."""
+    return [it for it in items if len(it) > 8 and it[8]] + [it for it in items if not (len(it) > 8 and it[8])]
 
 
 def record(d: dict, settings: dict, near: list[dict]) -> dict:
@@ -120,10 +139,12 @@ def link(url: str) -> str:
 
 
 def item_lines(feeds: dict, n: int, budget: int) -> list[str]:
-    """Up to n items, each headline a link to its article, as many as fit in `budget` bytes; the rest counted."""
+    """Up to n items, those passing the geopolitical filter first and tagged with their class, each headline a
+    link to its article, as many as fit in `budget` bytes; the rest counted."""
     out, used = [], 0
-    for it in feeds["items"][:n]:
-        line = f"- {solid.hm(it[1])} {md(it[7])} — [{md(trim(it[4], 110))}]({link(it[5])})"
+    for it in geo_first(feeds["items"])[:n]:
+        tag = f" · **{it[8]}**" if len(it) > 8 and it[8] else ""
+        line = f"- {solid.hm(it[1])} {md(it[7])}{tag} — [{md(trim(it[4], 110))}]({link(it[5])})"
         if used + len(line.encode()) + 1 + 48 > budget:
             break
         out.append(line)
@@ -136,8 +157,9 @@ def item_lines(feeds: dict, n: int, budget: int) -> list[str]:
 
 def feeds_line(feeds: dict, settings: dict) -> str:
     cov = f"{feeds['covered']} sources covered, {len(feeds['partly'])} partly, {len(feeds['null'])} NULL"
-    return (f"**Feeds** {window_text(settings)} · {len(feeds['domains'])} domains · {len(feeds['items'])} items "
-            f"({feeds['status']}; {cov})")
+    geo = sum(1 for it in feeds["items"] if len(it) > 8 and it[8])
+    return (f"**Feeds** {window_text(settings)} · {len(feeds['domains'])} domains · {len(feeds['items'])} items, "
+            f"{geo} geopolitical ({feeds['status']}; {cov})")
 
 
 def fit(parts: list[list[str]], limit: int = MAX_BYTES) -> str:

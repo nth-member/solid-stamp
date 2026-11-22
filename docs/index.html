@@ -113,6 +113,8 @@ tr.grp th{position:static;background:var(--plane);color:var(--ink);text-align:le
 <script src="solid.js"></script>
 <script>
 "use strict";
+// the items that pass the member's geopolitical filter first (item[8] is their class), each group in time order
+const geoFirst = items => items.filter(it => it[8]).concat(items.filter(it => !it[8]));
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const CLASS = { "revott+mdqnm": "REVOTT + MDQNM", revott: "REVOTT", mdqnm: "MDQNM" };
@@ -224,8 +226,8 @@ async function showTrigger(id, date) {
     feeds = `<h3>Feeds within ±${(Number(f.eps) * 100 * 1440).toFixed(1)} min · ${f.domains.length} domains · ${f.items.length} items · ${esc(f.status)}</h3>
       <p class="note">As stamped when the digest was sent (archive as of ${nsk(f.as_of)} Nsukka); ${f.covered} sources covered, ${f.partly.length} partly, ${f.null.length} NULL${f.null.length ? " (" + esc(f.null.join(", ")) + ")" : ""}.
       ${rec.final ? `A day later the stamp held ${rec.final.items.length} items.` : ""}</p>` +
-      (f.items.length ? `<div class="tbl"><table><tr><th class="num">s from Z</th><th>Nsukka</th><th>clock</th><th>source</th><th>headline</th></tr>` +
-        (rec.final && rec.final.items.length > f.items.length ? rec.final.items : f.items).map(it => `<tr><td class="num mono">${esc(it[0])}</td><td class="mono">${nsk(it[1]).slice(11)}</td><td><span class="how" title="${HOW[it[2]]}">${esc(it[2])}</span></td><td>${esc(it[7] || it[3])}</td><td class="break"><a href="${esc(it[5])}" rel="noopener">${esc(it[4])}</a></td></tr>`).join("") + "</table></div>" : "<p>No item fell in the window. The stamp is driven by the match to SFO-BBs, not by the feeds.</p>");
+      (f.items.length ? `<p class="note">Headlines that pass the member's geopolitical filter come first, tagged with their class (with the MID hostility level for war and disputes); the rest follow, each group in time order.</p><div class="tbl"><table><tr><th class="num">s from Z</th><th>Nsukka</th><th>clock</th><th>source</th><th>class</th><th>headline</th></tr>` +
+        geoFirst(rec.final && rec.final.items.length > f.items.length ? rec.final.items : f.items).map(it => `<tr><td class="num mono">${esc(it[0])}</td><td class="mono">${nsk(it[1]).slice(11)}</td><td><span class="how" title="${HOW[it[2]]}">${esc(it[2])}</span></td><td>${esc(it[7] || it[3])}</td><td>${it[8] ? "<b>" + esc(it[8]) + "</b>" : ""}</td><td class="break"><a href="${esc(it[5])}" rel="noopener">${esc(it[4])}</a></td></tr>`).join("") + "</table></div>" : "<p>No item fell in the window. The stamp is driven by the match to SFO-BBs, not by the feeds.</p>");
   } else {
     feeds = `<h3>Feeds</h3><p>${t.instants[0] > Date.now() ? "Ahead: the window opens " + nsk(t.instants[0] - 432000) + " Nsukka." : "The digest has not been sent yet."}
       ${live ? `<a href="${esc(live)}">Stamp it now in REVOTT STAMPS</a>.` : ""}</p>`;

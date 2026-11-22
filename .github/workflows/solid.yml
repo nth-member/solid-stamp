@@ -56,6 +56,17 @@ jobs:
           sparse-checkout: |
             /feeds/catalogue.json
           persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          repository: nth-member/member
+          path: .work/member
+          fetch-depth: 1
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /filter/
+            /member.json
+          persist-credentials: false
       - uses: actions/setup-python@v7
         with:
           python-version: "3.14"

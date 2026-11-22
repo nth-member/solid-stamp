@@ -40,7 +40,7 @@ for p in sorted((src / "days").glob("*.json"))[-9:]:
     kept, dropped = kept + len(keep), dropped + len(rows) - len(keep)
     (rs / "docs" / "data" / "days" / p.name).write_text(json.dumps(keep))
 paths = T / "paths.json"
-paths.write_text(json.dumps({"revott_stamps": str(rs), "jomo": str(home / "jomo-sfo-wam"), "engine": ""}))
+paths.write_text(json.dumps({"revott_stamps": str(rs), "jomo": str(home / "jomo-sfo-wam"), "member": str(home / "member"), "engine": ""}))
 env = {**os.environ, "SOLID_PATHS": str(paths)}
 out = T / "stamps-data"
 print(subprocess.run([sys.executable, str(ROOT / "stage" / "recent.py"), str(out)], env=env, capture_output=True, text=True, check=True).stdout.strip())

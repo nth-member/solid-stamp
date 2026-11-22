@@ -89,7 +89,7 @@ sqlite3 data/solid.sqlite "SELECT * FROM instants WHERE class = 'revott+mdqnm' A
 | what matched | REVOTT's pairs (Y, X), each SFO-BB with its reading, and Y + X. The functions, each with Ztp, U and the SFO-BB x it is on. The TNLDY exactly and to 6 decimals, and its instant(s) in Nsukka |
 | the full spectrum | every one of the 666 MDQNM functions read at Z: c = (Z − Ztp)/U to 6 decimals, **on** an SFO-BB or **between** two (or before the first, or after the last). This is what the engine's time-travel enumeration does for a single TNLDY |
 | also within the window | the other matches within ±100·ε of Z, each its own stamp. They are context only |
-| the feeds | REVOTT STAMPS' own stamp (`stage/stamp.py`) of the chosen feeds within ±100·ε TNLDY of Z, on its reconciled clock (the page's time, else the feed's, else first seen): every item with its time and link, and every source covered, partly or NULL |
+| the feeds | REVOTT STAMPS' own stamp (`stage/stamp.py`) of the chosen feeds within ±100·ε TNLDY of Z, on its reconciled clock (the page's time, else the feed's, else first seen): every item with its time and link, and every source covered, partly or NULL. Since 2026-11-22 each headline is read by the member's geopolitical filter (nth-member/member, `filter/`); those that pass come first, each tagged with its class (and its MID hostility level for war and disputes), and the feeds line counts them. The filter never starts or stops a push |
 | as sent | when the alert was scheduled, when the digest went out and how late, and the final stamp a day later |
 
 The record of every trigger is kept in `docs/log/<Nsukka date>.json`. The page shows it at `#t=<id>&d=<date>`. The
