@@ -217,7 +217,7 @@ To change code on the author's computer while GitHub sends, first move onto GitH
 |---|---|---|
 | `sender` | `github` | where the alerts and digests are sent from: `github` or `laptop`. The other place sends nothing |
 | `eps` | 0.00005 | the variac in X units at 100 days: ±100·ε TNLDY = ±7.2 min |
-| `clock`, `domains` | reconciled; the six feeds | as REVOTT STAMPS' standing requests: Balkans, geopolitical analysis, Middle East, Russia & Eurasia, science & technology, world (120 of the 232 sources) |
+| `clock`, `domains` | reconciled; seven domains | REVOTT STAMPS' standing requests' six (Balkans, geopolitical analysis, Middle East, Russia & Eurasia, science & technology, world), plus prediction markets (Polymarket's Geopolitics tag), added at the author's word on 2026-11-22: 121 of the 233 sources. A Polymarket question is stamped when it was added within the window about Z |
 | `settle_minutes` | 120 | how long after the window closes the digest waits |
 | `final_hours` | 24 | when the final stamp is recorded (not pushed) |
 | `horizon_hours` | 70 | how far ahead alerts are scheduled (ntfy's limit is 72) |
